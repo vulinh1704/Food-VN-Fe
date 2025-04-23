@@ -65,19 +65,6 @@ const CustomNextArrow = (props) => {
   );
 };
 
-const Dot = (props) => {
-  const { onClick } = props;
-  return (
-    <div
-      style={{
-        color: "black"
-      }}
-      onClick={onClick}
-    >
-      <GoDotFill style={{ color: "rgba(37, 21, 21, 0.6)", fontSize: "30px" }} />
-    </div>
-  );
-};
 
 const Hero = () => {
   const settings = {
@@ -94,7 +81,7 @@ const Hero = () => {
   };
 
   return (
-    <div className="w-full max-w-8xl mx-auto px-4 sm:px-8 md:px-16 relative container">
+    <div className="w-full mx-auto relative container">
       <Slider {...settings}>
         {ImageList.map((item) => (
           <div key={item.id} className="flex justify-center">

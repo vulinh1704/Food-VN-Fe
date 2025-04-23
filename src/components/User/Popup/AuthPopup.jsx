@@ -28,22 +28,22 @@ const LoginPopup = ({ isOpen, setIsOpen }) => {
               className="absolute top-4 right-4 text-2xl cursor-pointer"
               onClick={() => setIsOpen(false)}
             />
-            <h2 className="text-center text-xl font-bold mb-4">{isRegister ? "REGISTER" : "SIGN IN"}</h2>
+            <h2 className="text-center text-xl font-bold mb-4 text-[#fecb02]">{isRegister ? "REGISTER" : "SIGN IN"}</h2>
             <div className="flex justify-between mb-4 border-b pb-2 relative">
               <span 
-                className={`font-semibold cursor-pointer flex-1 text-center ${!isRegister ? "text-black" : "text-gray-500"}`}
+                className={`font-semibold cursor-pointer flex-1 text-center ${!isRegister ? "text-[#fecb02]" : "text-gray-500"}`}
                 onClick={() => setIsRegister(false)}
               >
                 LOGIN
               </span>
               <span 
-                className={`font-semibold cursor-pointer flex-1 text-center ${isRegister ? "text-black" : "text-gray-500"}`}
+                className={`font-semibold cursor-pointer flex-1 text-center ${isRegister ? "text-[#fecb02]" : "text-gray-500"}`}
                 onClick={() => setIsRegister(true)}
               >
                 REGISTER
               </span>
               <motion.div
-                className="absolute bottom-0 h-[2px] bg-black transition-all"
+                className="absolute bottom-0 h-[2px] bg-[#fecb02] transition-all"
                 animate={{ left: isRegister ? "50%" : "0%", width: "50%" }}
               />
             </div>
@@ -75,7 +75,7 @@ const LoginPopup = ({ isOpen, setIsOpen }) => {
                     {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
                   </span>
                 </div>
-                <button className="w-full bg-black text-white py-2 rounded mb-3">
+                <button className="w-full bg-[#fecb02] text-white py-2 rounded mb-3">
                   REGISTER
                 </button>
               </form>
@@ -105,7 +105,7 @@ const LoginPopup = ({ isOpen, setIsOpen }) => {
                   <input type="checkbox" className="mr-2" />
                   <span>Remember me</span>
                 </div>
-                <button className="w-full bg-black text-white py-2 rounded mb-3">
+                <button className="w-full bg-[#fecb02] text-white py-2 rounded mb-3">
                   LOGIN
                 </button>
               </form>

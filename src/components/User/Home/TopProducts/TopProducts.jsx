@@ -2,6 +2,7 @@ import React from "react";
 import { FaExclamationCircle, FaStar } from "react-icons/fa";
 import { formatVND } from "../../../../lib/format-hepper";
 import StarRating from "../../../Supporter/StarRating";
+import { Link } from "react-router-dom";
 
 const ProductsData = [
   {
@@ -83,6 +84,7 @@ const TopProducts = ({ handleOrderPopup }) => {
         {/* Body section */}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 gap-y-20 place-items-center">
           {ProductsData.map((data) => (
+            <Link to={"/detail/1"}>
             <div
               key={data.id}
               data-aos="zoom-in"
@@ -129,6 +131,7 @@ const TopProducts = ({ handleOrderPopup }) => {
                 </button>
               </div>
             </div>
+            </Link>
           ))}
 
         </div>

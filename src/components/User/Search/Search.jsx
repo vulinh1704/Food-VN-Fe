@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import StarRating from "../../Supporter/StarRating";
 import { TbFilterEdit } from "react-icons/tb";
-import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { FaExclamationCircle } from "react-icons/fa";
+import { ACTIVE_VALUE_NAVBAR } from "../../../lib/app-const";
+import { useNavabar } from "../../../providers/users/NavBarProvider";
+import { Link } from "react-router-dom";
 
-// Dữ liệu mẫu sản phẩm
 const products = [
     {
         id: 1,
@@ -79,31 +80,34 @@ const categories = [
 
 const ProductCard = ({ product }) => {
     return (
-        <div className="bg-white border rounded-md p-3 shadow-sm hover:border-[#fecb02] transition relative hover:scale-105 duration-300">
-            <img src={product.image} alt={product.title} className="w-full rounded-md mt-4" />
-            {product.discount && (
-                <div className="absolute top-2 rounded-md right-2 bg-opacity-80 bg-red-500 text-white px-1 py-1 text-[11px] font-bold-500 shadow-md z-10">
-                    -{product.discount}%
-                </div>
-            )}
+        <Link
+         to={"/detail/1"}>
+            <div className="bg-white border rounded-md p-3 shadow-sm hover:border-[#fecb02] transition relative hover:scale-105 duration-300">
+                <img src={product.image} alt={product.title} className="w-full rounded-md mt-4" />
+                {product.discount && (
+                    <div className="absolute top-2 rounded-md right-2 bg-opacity-80 bg-red-500 text-white px-1 py-1 text-[11px] font-bold-500 shadow-md z-10">
+                        -{product.discount}%
+                    </div>
+                )}
 
-            {!product.inStock && (
-                <div className="absolute top-[100px] left-14 bg-white bg-opacity-70 text-black text-2xs px-2 py-2 text-sm font-bold-300 shadow-md z-10 flex items-center gap-1">
-                    <FaExclamationCircle className="text-red-500" /> HẾT HÀNG
+                {!product.inStock && (
+                    <div className="absolute top-[100px] left-14 bg-white bg-opacity-70 text-black text-2xs px-2 py-2 text-sm font-bold-300 shadow-md z-10 flex items-center gap-1">
+                        <FaExclamationCircle className="text-red-500" /> HẾT HÀNG
+                    </div>
+                )}
+                <h3 className="mt-4 text-md font-semibold">{product.title}</h3>
+                <p className="text-red-500 font-bold mt-3">{product.price}</p>
+                <div className="flex items-center text-yellow-500 text-sm mt-3">
+                    <StarRating rating={product.rating} />
                 </div>
-            )}
-            <h3 className="mt-4 text-md font-semibold">{product.title}</h3>
-            <p className="text-red-500 font-bold mt-3">{product.price}</p>
-            <div className="flex items-center text-yellow-500 text-sm mt-3">
-                <StarRating rating={product.rating} />
+                <button
+                    className={`w-full border duration-300 text-sm font-sans py-2 px-4 rounded-md mt-3 tracking-wide ${product.inStock ? 'text-[#fecb02] border-[#fecb02] hover:scale-105 hover:text-white hover:bg-[#fecb02]' : 'text-gray-400'}`}
+                    disabled={!product.inStock}
+                >
+                    {product.inStock ? "ADD TO CART" : "OUT OF STOCK"}
+                </button>
             </div>
-            <button
-                className={`w-full border duration-300 text-sm font-sans py-2 px-4 rounded-md mt-3 tracking-wide ${product.inStock ? 'text-[#fecb02] border-[#fecb02] hover:scale-105 hover:text-white hover:bg-[#fecb02]' : 'text-gray-400'}`}
-                disabled={!product.inStock}
-            >
-                {product.inStock ? "ADD TO CART" : "OUT OF STOCK"}
-            </button>
-        </div>
+        </Link>
     );
 };
 
@@ -176,9 +180,13 @@ const FilterContent = () => (
 const Search = () => {
     const [page, setPage] = useState(1);
     const [showFilterModal, setShowFilterModal] = useState(false);
+    const { setActive } = useNavabar();
+    useEffect(() => {
+        setActive(ACTIVE_VALUE_NAVBAR.FOOD);
+    }, []);
 
     return (
-        <div className="mx-auto px-4 py-8">
+        <div className="mx-auto px-4 py-8 container">
             <div className="flex justify-between items-center mb-5">
                 <div className="lg:hidden">
                     <button onClick={() => setShowFilterModal(true)}
