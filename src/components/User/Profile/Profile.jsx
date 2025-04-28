@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { ACTIVE_VALUE_NAVBAR } from '../../../lib/app-const';
-import { useNavabar } from '../../../providers/users/NavBarProvider';
+import { useNavbar } from '../../../providers/users/NavBarProvider';
 
 const Profile = () => {
-  const { setActive } = useNavabar();
+  const { setActive } = useNavbar();
   useEffect(() => {
     setActive(ACTIVE_VALUE_NAVBAR.INFOMATION);
   }, []);

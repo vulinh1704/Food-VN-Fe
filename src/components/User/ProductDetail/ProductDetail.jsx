@@ -6,7 +6,7 @@ import { IoCartOutline } from "react-icons/io5";
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import { useNavabar } from "../../../providers/users/NavBarProvider";
+import { useNavbar } from "../../../providers/users/NavBarProvider";
 import { ACTIVE_VALUE_NAVBAR } from "../../../lib/app-const";
 
 const product = {
@@ -124,7 +124,7 @@ const ImageGallery = () => {
 };
 
 const ProductDetail = () => {
-  const { setActive } = useNavabar();
+  const { setActive } = useNavbar();
   useEffect(() => {
     setActive(ACTIVE_VALUE_NAVBAR.FOOD);
   }, []);

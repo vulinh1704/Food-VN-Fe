@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import StepsBar from './StepsBar';
 import { CiTrash } from "react-icons/ci";
-import { useNavabar } from '../../../providers/users/NavBarProvider';
+import { useNavbar } from '../../../providers/users/NavBarProvider';
 import { ACTIVE_VALUE_NAVBAR } from '../../../lib/app-const';
 
 const Order = () => {
@@ -35,7 +35,7 @@ const Order = () => {
     const subtotal = cartItems.reduce((sum, item) => sum + item.total, 0);
     const codFee = 20000;
     const total = subtotal + codFee;
-    const { setActive } = useNavabar();
+    const { setActive } = useNavbar();
     useEffect(() => {
         setActive(ACTIVE_VALUE_NAVBAR.ORDER);
     }, []);

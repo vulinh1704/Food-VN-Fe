@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from 'react';
-const NavaBarContext = createContext({});
+const NavBarContext = createContext({});
 
 export const NavBarProvider = ({ children }) => {
   const [active, setActive] = useState(1);
@@ -10,12 +10,12 @@ export const NavBarProvider = ({ children }) => {
   };
 
   return (
-    <NavaBarContext.Provider value={value}>
+    <NavBarContext.Provider value={value}>
       {children}
-    </NavaBarContext.Provider>
+    </NavBarContext.Provider>
   );
 };
 
-export const useNavabar = () => {
-  return useContext(NavaBarContext);
+export const useNavbar = () => {
+  return useContext(NavBarContext);
 };

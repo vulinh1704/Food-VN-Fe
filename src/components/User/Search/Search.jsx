@@ -4,7 +4,7 @@ import StarRating from "../../Supporter/StarRating";
 import { TbFilterEdit } from "react-icons/tb";
 import { FaExclamationCircle } from "react-icons/fa";
 import { ACTIVE_VALUE_NAVBAR } from "../../../lib/app-const";
-import { useNavabar } from "../../../providers/users/NavBarProvider";
+import { useNavbar } from "../../../providers/users/NavBarProvider";
 import { Link } from "react-router-dom";
 
 const products = [
@@ -180,7 +180,7 @@ const FilterContent = () => (
 const Search = () => {
     const [page, setPage] = useState(1);
     const [showFilterModal, setShowFilterModal] = useState(false);
-    const { setActive } = useNavabar();
+    const { setActive } = useNavbar();
     useEffect(() => {
         setActive(ACTIVE_VALUE_NAVBAR.FOOD);
     }, []);

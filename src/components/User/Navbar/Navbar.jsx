@@ -5,7 +5,7 @@ import { FaBars, FaCircleInfo } from "react-icons/fa6";
 import { FaRegUser, FaCcAmazonPay } from "react-icons/fa";
 import { IoCartOutline } from "react-icons/io5";
 import { MdFastfood } from "react-icons/md";
-import { useNavabar } from "../../../providers/users/NavBarProvider";
+import { useNavbar } from "../../../providers/users/NavBarProvider";
 import { Link } from "react-router-dom";
 import { ACTIVE_VALUE_NAVBAR } from "../../../lib/app-const";
 
@@ -37,7 +37,7 @@ const Menu = [
 ];
 
 const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) => {
-  const { active, setActive } = useNavabar();
+  const { active, setActive } = useNavbar();
   return (
     <div className="shadow-md bg-white duration-200 z-40 fixed top-0 left-0 w-full">
       <div className="w-full border-b border-gray-300">
