@@ -25,7 +25,7 @@ export const RouteSelect = () => {
       <Link to={"/admin"}><Route Icon={FiHome} selected={active == SIDE_BAR_SELECTED.DASHBOARD} title="Dashboard" /></Link>
       <Link to={"/admin/products"}><Route Icon={PiBowlFoodLight} selected={active == SIDE_BAR_SELECTED.FOODS} title="Foods" /></Link>
       <Link to={"/admin/categories"}><Route Icon={MdOutlineCategory} selected={active == SIDE_BAR_SELECTED.CATEGORIES} title="Categories" /></Link>
-      <Link to={"/admin/products"}><Route Icon={RiCoupon2Line} selected={active == SIDE_BAR_SELECTED.COUPONS} title="Coupons" /></Link>
+      <Link to={"/admin/coupons"}><Route Icon={RiCoupon2Line} selected={active == SIDE_BAR_SELECTED.COUPONS} title="Coupons" /></Link>
       <Link to={"/admin/products"}><Route Icon={FiPaperclip} selected={active == SIDE_BAR_SELECTED.INVOICES} title="Invoices" /></Link>
     </div>
   );

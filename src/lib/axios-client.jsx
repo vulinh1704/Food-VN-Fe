@@ -1,5 +1,11 @@
 import axios from "axios";
 
+const noAuthApis = [
+  "/login",
+  "/signup", 
+  "/categories",
+];
+
 const axiosClient = axios.create({
   baseURL: "http://localhost:8080",
   headers: {
@@ -10,9 +16,11 @@ const axiosClient = axios.create({
 
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (!noAuthApis.some(api => config.url.includes(api))) {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },

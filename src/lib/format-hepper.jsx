@@ -32,3 +32,37 @@ export const getFormattedDate = () => {
 
   return `${dayName}, ${monthName} ${dayWithSuffix} ${year}`;
 }
+
+
+export function parseToVietnamTime(isoString) {
+  const date = new Date(isoString);
+  const vietnamTime = new Intl.DateTimeFormat("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).format(date);
+
+  return vietnamTime;
+}
+
+export function formatNumberWithDots(value) {
+  if (value == null || value === "") return "";
+  return value
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
+export function unFormatNumber(value) {
+  return parseFloat(value.replace(/\./g, "")) || 0;
+}
+
+export const formatDateTimeLocal = (date) => {
+  if (!date) return "";
+  const d = new Date(date);
+  return d.toISOString().slice(0, 16);
+};
+

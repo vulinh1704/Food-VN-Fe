@@ -10,7 +10,7 @@ import { v4 } from "uuid";
 import { storage } from "../../../config/fire-base";
 import * as Yup from 'yup';
 import { ErrorMessage, Field, Form, Formik } from "formik";
-import { addCategory } from "../../../services/category-service/category-service";
+import { addCategory, getOneCategory } from "../../../services/category-service/category-service";
 import { useNotificationPortal } from "../../Supporter/NotificationPortal";
 import { NotificationType } from "../../Supporter/Notification";
 const CategorySchema = Yup.object().shape({
@@ -20,11 +20,12 @@ const CategorySchema = Yup.object().shape({
         .required('Name is required!')
 });
 
-const AddCategory = ({ isOpenAddCategoryPopup, setIsOpenAddCategoryPopup }) => {
+const EditCategory = ({ isOpenEditCategoryPopup, setIsOpenEditCategoryPopup, idEdit }) => {
     const { showNotification, NotificationPortal } = useNotificationPortal();
     const [imageUrl, setImageUrl] = useState("");
     const [imageError, setImageError] = useState("");
-    
+    const [category, setCategory] = useState(null);
+
     const uploadFile = (file) => {
         if (file == null) return;
         const imageRef = ref(storage, `images/${file.name + v4()}`);
@@ -39,27 +40,41 @@ const AddCategory = ({ isOpenAddCategoryPopup, setIsOpenAddCategoryPopup }) => {
         setImageUrl("");
     }
 
-    const add = async (values) => {
+    const edit = async (values) => {
         await addCategory(values);
-        showNotification(NotificationType.SUCCESS, "Add category success.");
-        setIsOpenAddCategoryPopup(false);
+        showNotification(NotificationType.SUCCESS, "Edit category success.");
+        setIsOpenEditCategoryPopup(false);
     }
+
+    const findById = async () => {
+        try {
+            const data = await getOneCategory(idEdit);
+            setCategory(data);
+            console.log("image", imageUrl)
+            setImageUrl(data.image);
+        } catch (e) {
+            showNotification(NotificationType.ERROR, e.response.data.message);
+        }
+    }
+
+    useEffect(() => {
+        if (idEdit) findById();
+    }, [idEdit]);
 
     return (
         <>
             <NotificationPortal />
             <Formik
-                initialValues={{
-                    name: ''
-                }}
+                initialValues={category}
                 validationSchema={CategorySchema}
-                onSubmit={(values, { resetForm, setSubmitting }) => {
+                enableReinitialize
+                onSubmit={(values, { resetForm }) => {
                     if (!imageUrl) {
                         setImageError("Image is required!");
                         return;
                     }
                     const data = { ...values, image: imageUrl };
-                    add(data);
+                    edit(data);
                     setImageUrl("");
                     setImageError("");
                     resetForm();
@@ -67,7 +82,7 @@ const AddCategory = ({ isOpenAddCategoryPopup, setIsOpenAddCategoryPopup }) => {
             >
 
                 <AnimatePresence>
-                    {isOpenAddCategoryPopup && (
+                    {isOpenEditCategoryPopup && (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -83,10 +98,10 @@ const AddCategory = ({ isOpenAddCategoryPopup, setIsOpenAddCategoryPopup }) => {
                             >
                                 <IoCloseOutline
                                     className="absolute top-4 right-4 text-2xl cursor-pointer text-gray-600 hover:text-red-500"
-                                    onClick={() => setIsOpenAddCategoryPopup(false)}
+                                    onClick={() => setIsOpenEditCategoryPopup(false)}
                                 />
                                 <Form>
-                                    <h2 className="text-2xl font-semibold text-[#fecb02] text-600 mb-6">Add Category</h2>
+                                    <h2 className="text-2xl font-semibold text-[#fecb02] text-600 mb-6">Edit Category</h2>
                                     <div className="grid md:grid-cols-2 gap-4 mb-4">
                                         <div className="col-span-1">
                                             <Field
@@ -145,4 +160,4 @@ const AddCategory = ({ isOpenAddCategoryPopup, setIsOpenAddCategoryPopup }) => {
     );
 };
 
-export default AddCategory;
+export default EditCategory;
