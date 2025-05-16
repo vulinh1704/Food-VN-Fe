@@ -16,7 +16,7 @@ const Profile = () => {
   useEffect(() => {
     setActive(ACTIVE_VALUE_NAVBAR.INFOMATION);
     getUserInfo();
-  }, [userInfo]);
+  }, []);
 
   return (
     <>
