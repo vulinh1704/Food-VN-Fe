@@ -9,7 +9,7 @@ export const getAllCategories = async (params) => {
     return res.data;
 }
 
-export const getAll = async (params) => {
+export const getAllData = async (params) => {
     let res = await axiosClient.get("/categories/get-all", { params });
     return res.data;
 }

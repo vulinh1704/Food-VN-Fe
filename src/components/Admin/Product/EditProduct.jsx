@@ -15,7 +15,7 @@ import CategorySelect from "./CategorySelect";
 import CouponCheckboxList from "./CouponsCheckbox";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
-import { saveProduct } from "../../../services/product-service/product-service";
+import { getOneById, saveProduct } from "../../../services/product-service/product-service";
 import { useNotificationPortal } from "../../Supporter/NotificationPortal";
 import { NotificationType } from "../../Supporter/Notification";
 
@@ -94,9 +94,22 @@ function DescriptionEditor({ value, onChange }) {
     );
 }
 
-const AddProduct = ({ isOpenAddProductPopup, setIsOpenAddProductPopup }) => {
+const EditProduct = ({ isOpenEditProductPopup, setIsOpenEditProductPopup, idEdit }) => {
     const [imageUrls, setImageUrls] = useState([]);
     const { showNotification, NotificationPortal } = useNotificationPortal();
+    const [product, setProduct] = useState(null);
+    const [newProduct, setNewProduct] = useState({});
+    const getOne = async () => {
+        let data = await getOneById(idEdit);
+        setProduct(data);
+        setImageUrls(JSON.parse(data.images));
+        let couponIds = data.coupons.map(item => item.id);
+        setNewProduct({ ...data, categoryId: data.category.id, couponIds });
+    }
+
+    useEffect(() => {
+        if (idEdit) getOne();
+    }, [idEdit]);
 
     const uploadFile = (file) => {
         if (file == null) return;
@@ -112,7 +125,7 @@ const AddProduct = ({ isOpenAddProductPopup, setIsOpenAddProductPopup }) => {
         try {
             await saveProduct(values);
             showNotification(NotificationType.SUCCESS, "Add food success.");
-            setIsOpenAddProductPopup(false);
+            setIsOpenEditProductPopup(false);
         } catch (e) {
             showNotification(NotificationType.ERROR, e.response.data.message);
         }
@@ -126,21 +139,14 @@ const AddProduct = ({ isOpenAddProductPopup, setIsOpenAddProductPopup }) => {
 
     return (
         <>
-            {isOpenAddProductPopup && (
+            {isOpenEditProductPopup && product && (
                 <>
                     <NotificationPortal />
                     <Formik
-                        initialValues={{
-                            name: '',
-                            categoryId: '',
-                            price: '',
-                            quantity: '',
-                            couponIds: [],
-                            description: ''
-                        }}
+                        initialValues={newProduct}
+                        enableReinitialize
                         validationSchema={ProductSchema}
                         onSubmit={(values, { resetForm, setSubmitting }) => {
-                            console.log(values);
                             values = { ...values, images: JSON.stringify(imageUrls) };
                             save(values)
                         }}>
@@ -162,9 +168,9 @@ const AddProduct = ({ isOpenAddProductPopup, setIsOpenAddProductPopup }) => {
                                     >
                                         <IoCloseOutline
                                             className="absolute top-4 right-4 text-2xl cursor-pointer text-gray-600 hover:text-red-500"
-                                            onClick={() => setIsOpenAddProductPopup(false)}
+                                            onClick={() => setIsOpenEditProductPopup(false)}
                                         />
-                                        <h2 className="text-2xl font-semibold text-[#fecb02] text-600 mb-6">Add Food</h2>
+                                        <h2 className="text-2xl font-semibold text-[#fecb02] text-600 mb-6">Edit Food</h2>
                                         <div className="grid md:grid-cols-2 gap-4 mb-4">
                                             <div className="col-span-1">
                                                 <Field
@@ -264,4 +270,4 @@ const AddProduct = ({ isOpenAddProductPopup, setIsOpenAddProductPopup }) => {
     );
 };
 
-export default AddProduct;
+export default EditProduct;

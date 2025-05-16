@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FaChevronLeft, FaChevronRight, FaStar } from "react-icons/fa";
-import { formatVND } from "../../../lib/format-hepper";
+import { formatNumberWithDots, formatVND } from "../../../lib/format-hepper";
 import StarRating from "../../Supporter/StarRating";
 import { IoCartOutline } from "react-icons/io5";
 import Slider from 'react-slick';
@@ -8,6 +8,8 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { useNavbar } from "../../../providers/users/NavBarProvider";
 import { ACTIVE_VALUE_NAVBAR } from "../../../lib/app-const";
+import { useParams } from "react-router-dom";
+import { getOneById } from "../../../services/product-service/product-service";
 
 const product = {
   id: 2,
@@ -82,9 +84,8 @@ const CustomNextArrow = (props) => {
     </div>
   );
 };
-const ImageGallery = () => {
-
-  const [mainImage, setMainImage] = useState(thumbnails[0]);
+const ImageGallery = ({ product }) => {
+  const [mainImage, setMainImage] = useState(JSON.parse(product.images)[0]);
 
   const settings = {
     dots: false,
@@ -107,7 +108,7 @@ const ImageGallery = () => {
       {/* Slider ảnh nhỏ */}
       <div className="mt-4">
         <Slider {...settings}>
-          {thumbnails.map((src, idx) => (
+          {JSON.parse(product.images).map((src, idx) => (
             <div key={idx}>
               <div
                 onMouseEnter={() => setMainImage(src)}
@@ -125,24 +126,33 @@ const ImageGallery = () => {
 
 const ProductDetail = () => {
   const { setActive } = useNavbar();
+  const { id } = useParams();
+  const [product, setProduct] = useState(null);
+
+  const getOne = async () => {
+    let data = await getOneById(id);
+    setProduct(data);
+  }
+
   useEffect(() => {
     setActive(ACTIVE_VALUE_NAVBAR.FOOD);
+    if (id) getOne();
   }, []);
 
   return (
-    <div className="mx-auto px-4 py-8 grid grid-cols-12 gap-6 bg-white mb-8 container">
-      <ImageGallery />
+    product && <div className="mx-auto px-4 py-8 grid grid-cols-12 gap-6 bg-white mb-8 container">
+      <ImageGallery product={product} />
       {/* Product Info */}
       <div className="col-span-12 md:col-span-6 xl:col-span-7">
         <h1 className="text-2xl font-semibold">
-          Linh kiện Thân Máy Flycam - Tay Cầm - Pin - Sạc
+          {product.name}
         </h1>
         <div className="flex items-center space-x-4 mt-2">
           <div className="flex gap-2 border-r-2 pr-2">
             <span className="text-[16px] border-b border-black">
-              {product.rating}
+              {product.score}
             </span>
-            < StarRating rating={product.rating} />
+            < StarRating rating={product.score} />
           </div>
           <div className="flex gap-2">
             <span className="text-[16px] border-b border-black">6</span>
@@ -151,13 +161,17 @@ const ProductDetail = () => {
 
         </div>
         <div className="w-full h-[70px] flex items-center bg-gray-100 mt-4 gap-4">
-          <p className="text-red-600 text-3xl font-normal pl-2">{formatVND(product.price)}</p>
-          <p className="rounded-md right-2 bg-opacity-80 bg-red-100 px-1 text-sm text-red-600 mt-1">-{'50%'}</p>
+          <p className="text-red-600 text-3xl font-normal pl-2">{formatNumberWithDots(product.price)} VNĐ</p>
+          {
+            product.coupons.map(item =>
+              <p className="rounded-md right-2 bg-opacity-80 bg-red-100 px-1 text-sm text-red-600 mt-1">-{formatNumberWithDots(item.discount)} {item.type == "percent" ? "%" : "VNĐ"}</p>
+            )
+          }
         </div>
         <div className="mt-6">
           <p className="text-gray-700 text-sm mb-2">Tùy chọn:</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
-            {['Thân Máy Flycam', 'Tay Cầm RC2', 'Pin', 'Sạc'].map((option, idx) => (
+            {['Thêm trứng', 'Thêm bún', 'Pin', 'Sạc'].map((option, idx) => (
               <button
                 key={idx}
                 className="border px-3 py-1 rounded hover:border-[#fecb02] hover:text-[#fecb02] transition flex items-center gap-2"
@@ -167,6 +181,9 @@ const ProductDetail = () => {
               </button>
             ))}
           </div>
+        </div>
+        <div className="mt-6">
+          <p className="text-gray-700 text-sm mb-2">Category: <span className="text-md">{product.category.name}</span></p>
         </div>
         <div className="mt-6">
           <p className="text-gray-700 text-sm mb-2">Số lượng:</p>
@@ -194,16 +211,7 @@ const ProductDetail = () => {
       <div className="col-span-12 lg:col-span-8 bg-white">
         <div className="border rounded p-4 mt-6">
           <h2 className="text-xl font-semibold mb-5">Mô tả sản phẩm</h2>
-          <p className="text-sm text-gray-700">
-            Linh kiện DJI RC 2 được sử dụng cho dòng Flycam Mini 4 Pro, RC2 hỗ trợ sử dụng màn hình
-            có sẵn điều khiển mượt mà, hỗ trợ O4 video truyền hình ảnh mượt hơn. Pin dung lượng cao
-            5200mAh giúp trải nghiệm tốt hơn.Linh kiện DJI RC 2 được sử dụng cho dòng Flycam Mini 4 Pro, RC2 hỗ trợ sử dụng màn hình
-            có sẵn điều khiển mượt mà, hỗ trợ O4 video truyền hình ảnh mượt hơn. Pin dung lượng cao
-            5200mAh giúp trải nghiệm tốt hơn.Linh kiện DJI RC 2 được sử dụng cho dòng Flycam Mini 4 Pro, RC2 hỗ trợ sử dụng màn hình
-            có sẵn điều khiển mượt mà, hỗ trợ O4 video truyền hình ảnh mượt hơn. Pin dung lượng cao
-            5200mAh giúp trải nghiệm tốt hơn.Linh kiện DJI RC 2 được sử dụng cho dòng Flycam Mini 4 Pro, RC2 hỗ trợ sử dụng màn hình
-            có sẵn điều khiển mượt mà, hỗ trợ O4 video truyền hình ảnh mượt hơn. Pin dung lượng cao
-            5200mAh giúp trải nghiệm tốt hơn.
+          <p className="text-sm text-gray-700" dangerouslySetInnerHTML={{ __html: product.description }}>
           </p>
         </div>
         {/* Product Reviews */}

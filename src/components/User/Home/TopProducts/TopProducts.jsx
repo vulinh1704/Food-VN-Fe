@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FaExclamationCircle, FaStar } from "react-icons/fa";
-import { formatVND } from "../../../../lib/format-hepper";
+import { formatNumberWithDots, formatVND } from "../../../../lib/format-hepper";
 import StarRating from "../../../Supporter/StarRating";
 import { Link } from "react-router-dom";
+import { getList } from "../../../../services/product-service/product-service";
 
 const ProductsData = [
   {
@@ -69,6 +70,19 @@ const ProductsData = [
   },
 ];
 const TopProducts = ({ handleOrderPopup }) => {
+  const [products, setProducts] = useState([]);
+  const getTopProducts = async () => {
+    const params = {
+      size: 12
+    };
+    const data = await getList(params);
+    setProducts(data.content);
+  }
+
+  useEffect(() => {
+    getTopProducts();
+  }, [])
+
   return (
     <div>
       <div className="container">
@@ -83,64 +97,75 @@ const TopProducts = ({ handleOrderPopup }) => {
         </div>
         {/* Body section */}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 gap-y-20 place-items-center">
-          {ProductsData.map((data) => (
+          {products.map((data) => (
             <Link to={"/detail/1"}>
-            <div
-              key={data.id}
-              data-aos="zoom-in"
-              className="rounded-md bg-white relative shadow-xl duration-300 group min-w-full min-h-full hover:border border-[#fecb02]"
-            >
+              <div
+                key={data.id}
+                data-aos="zoom-in"
+                className="rounded-md bg-white relative shadow-xl duration-300 group min-w-full min-h-full hover:border border-[#fecb02]"
+              >
 
-              {!data.inStock && (
-                <div className="absolute top-4 left-14 bg-white bg-opacity-70 text-black text-2xs px-2 py-2 text-sm font-bold-300 shadow-md z-10 flex items-center gap-1">
-                  <FaExclamationCircle className="text-red-500" /> HẾT HÀNG
+                {data.quantity == 0 && (
+                  <div className="absolute top-4 left-14 bg-white bg-opacity-70 text-black text-2xs px-2 py-2 text-sm font-bold-300 shadow-md z-10 flex items-center gap-1">
+                    <FaExclamationCircle className="text-red-500" /> HẾT HÀNG
+                  </div>
+                )}
+
+                <div className="relative">
+                  {data.coupons && data.coupons.length > 0 && (
+                    <div className="absolute right-2 top-[-38px] flex flex-col gap-1 z-10">
+                      {data.coupons.map((item, index) => (
+                        <div
+                          key={index}
+                          className="rounded-md bg-opacity-80 bg-red-500 text-white px-2 py-1 text-xs font-semibold shadow-md"
+                        >
+                          -{formatNumberWithDots(item.discount)} {item.type === "percent" ? "%" : "VNĐ"}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              )}
 
-              {data.discount && (
-                <div className="absolute top-[-38px] rounded-md right-2 bg-opacity-80 bg-red-500 text-white px-1 py-1 text-xs font-bold-500
-                 shadow-md z-10">
-                  -{data.discount}%
+
+
+                {/* image section */}
+                <div className="h-[150px]">
+                  <img
+                    src={JSON.parse(data.images)[0]}
+                    alt=""
+                    className="w-[180px] h-[180px] block mx-auto transform -translate-y-10 group-hover:scale-105 duration-300 drop-shadow-md object-contain"
+                  />
                 </div>
-              )}
-
-              {/* image section */}
-              <div className="h-[150px]">
-                <img
-                  src={data.img}
-                  alt=""
-                  className="w-[180px] h-[180px] block mx-auto transform -translate-y-10 group-hover:scale-105 duration-300 drop-shadow-md object-contain"
-                />
+                {/* details section */}
+                <div className="p-3 text-center">
+                  {/* star rating */}
+                  <div className="w-full flex items-center justify-center gap-1">
+                    <StarRating rating={data.score} />
+                  </div>
+                  <h1 className="text-md font-bold-500 py-1 line-clamp-1 px-2">{data.name}</h1>
+                  <p className="text-gray-600 duration-300 text-1/2xl line-clamp-2 py-1/2">
+                    {formatVND(data.price)}
+                  </p>
+                  <button
+                    className={`w-[180px] border-2 duration-300 text-sm font-sans py-2 px-4 rounded-md mt-4 tracking-wide ${data.quantity > 0 ? 'text-[#fecb02] border-[#fecb02] hover:scale-105 hover:text-md' : 'text-gray-400'}`}
+                    onClick={handleOrderPopup}
+                    disabled={data.quantity == 0}
+                  >
+                    {data.quantity > 0 ? "ADD TO CART" : "OUT OF STOCK"}
+                  </button>
+                </div>
               </div>
-              {/* details section */}
-              <div className="p-3 text-center">
-                {/* star rating */}
-                <div className="w-full flex items-center justify-center gap-1">
-                  <StarRating rating={data.rating} />
-                </div>
-                <h1 className="text-md font-bold-500 py-1 line-clamp-1 px-2">{data.title}</h1>
-                <p className="text-gray-600 duration-300 text-1/2xl line-clamp-2 py-1/2">
-                  {formatVND(data.price)}
-                </p>
-                <button
-                  className={`w-[180px] border-2 duration-300 text-sm font-sans py-2 px-4 rounded-md mt-4 tracking-wide ${data.inStock ? 'text-[#fecb02] border-[#fecb02] hover:scale-105 hover:text-md' : 'text-gray-400'}`}
-                  onClick={handleOrderPopup}
-                  disabled={!data.inStock}
-                >
-                  {data.inStock ? "ADD TO CART" : "OUT OF STOCK"}
-                </button>
-              </div>
-            </div>
             </Link>
           ))}
 
         </div>
         <div className="text-center mt-10">
-          <button
+          <Link
+            to={"/foods"}
             className="px-40 py-3 border border-gray-300 text-gray-300 text-2md font-normal rounded-md hover:scale-105 duration-300 hover:border-gray-600 hover:text-gray-600"
           >
             See more ...
-          </button>
+          </Link>
         </div>
       </div>
     </div>

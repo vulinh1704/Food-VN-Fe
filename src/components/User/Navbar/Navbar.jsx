@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Logo from "../../../assets/logo.png";
 import { IoMdSearch, IoMdHome } from "react-icons/io";
 import { FaBars, FaCircleInfo } from "react-icons/fa6";
@@ -6,8 +6,9 @@ import { FaRegUser, FaCcAmazonPay } from "react-icons/fa";
 import { IoCartOutline } from "react-icons/io5";
 import { MdFastfood } from "react-icons/md";
 import { useNavbar } from "../../../providers/users/NavBarProvider";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ACTIVE_VALUE_NAVBAR } from "../../../lib/app-const";
+import { useUser } from "../../../providers/users/UserProvider";
 
 const Menu = [
   {
@@ -38,6 +39,17 @@ const Menu = [
 
 const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) => {
   const { active, setActive } = useNavbar();
+  const navigate = useNavigate();
+  const [foodName, setFoodName] = useState("");
+  const [searchParams] = useSearchParams();
+  const searchFoodName = () => {
+    navigate(`/foods?name=${foodName}`);
+  }
+  const { user } = useUser();
+  useEffect(() => {
+    const name = searchParams.get('name');
+    if (name != null || name != undefined) setFoodName(name);
+  }, [])
   return (
     <div className="shadow-md bg-white duration-200 z-40 fixed top-0 left-0 w-full">
       <div className="w-full border-b border-gray-300">
@@ -83,17 +95,34 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
                     type="text"
                     placeholder="Search"
                     className="w-full rounded-md border border-gray-300 px-4 py-2 pr-10 focus:outline-none focus:border-[#fecb02] dark:border-gray-500 dark:bg-gray-800"
+                    value={foodName}
+                    onChange={(e) => { setFoodName(e.target.value) }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        searchFoodName();
+                      }
+                    }}
                   />
-                  <IoMdSearch className="text-gray-500 text-xl group-hover:text-[#fecb02] absolute top-1/2 right-4 -translate-y-1/2" />
+                  <IoMdSearch className="text-gray-500 text-xl group-hover:text-[#fecb02] absolute top-1/2 right-4 -translate-y-1/2" onClick={searchFoodName} />
                 </div>
               </div>
               <div className="lg:w-auto w-full hidden lg:flex justify-center lg:justify-end items-center gap-4">
-                <button
-                  className="p-1/2"
-                  onClick={handleAuthPopup}
-                >
-                  <FaRegUser className="stroke-gray-600 text-xl transition-colors duration-200 hover:text-[#fecb02]" />
-                </button>
+                {user ? <>
+                  <Link
+                    className="p-1/2"
+                    to="/info"
+                  >
+                    <FaRegUser className="stroke-gray-600 text-xl transition-colors duration-200 hover:text-[#fecb02]" />
+                  </Link>
+                </> :
+                  <button
+                    className="p-1/2"
+                    onClick={handleAuthPopup}
+                  >
+                    <FaRegUser className="stroke-gray-600 text-xl transition-colors duration-200 hover:text-[#fecb02]" />
+                  </button>
+                }
 
                 <div className="relative">
                   <button
@@ -115,21 +144,35 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
       <div className="lg:flex hidden w-full bg-white shadow-sm">
         <div className="mx-auto flex justify-center">
           <ul className="flex items-center space-x-11 font-medium text-black">
-            {Menu.map((data) => (
-              <li
-                key={data.id}
-                className={`relative group py-2 ${active === data.id ? 'border-b-2 border-[#fecb02] text-[#fecb02] rounded-md' : ''}`}
-                onClick={() => setActive(data.id)}
-              >
-                <Link
-                  to={data.link}
-                  className="inline-flex items-center gap-2 px-20 py-2 hover:text-[#fecb02] duration-200 font-medium text-sm text-gray-600"
+            {Menu.map((data) => {
+              if (data.id == ACTIVE_VALUE_NAVBAR.INFOMATION && !user) {
+                return <li>
+                  <a
+                    onClick={handleAuthPopup}
+                    className="inline-flex items-center gap-2 px-20 py-2 hover:text-[#fecb02] duration-200 font-medium text-sm text-gray-600"
+                  >
+                    <span className={`text-xl ${active === data.id ? 'text-[#fecb02]' : ''}`}>{data.icon}</span>
+                    <span className={`ml-2 ${active === data.id ? 'text-[#fecb02]' : ''}`}>{data.name}</span>
+                  </a>
+                </li>
+              }
+              return (
+                <li
+                  key={data.id}
+                  className={`relative group py-2 ${active === data.id ? 'border-b-2 border-[#fecb02] text-[#fecb02] rounded-md' : ''}`}
+                  onClick={() => setActive(data.id)}
                 >
-                  <span className={`text-xl ${active === data.id ? 'text-[#fecb02]' : ''}`}>{data.icon}</span>
-                  <span className={`ml-2 ${active === data.id ? 'text-[#fecb02]' : ''}`}>{data.name}</span>
-                </Link>
-              </li>
-            ))}
+                  <Link
+                    to={data.link}
+                    className="inline-flex items-center gap-2 px-20 py-2 hover:text-[#fecb02] duration-200 font-medium text-sm text-gray-600"
+                  >
+                    <span className={`text-xl ${active === data.id ? 'text-[#fecb02]' : ''}`}>{data.icon}</span>
+                    <span className={`ml-2 ${active === data.id ? 'text-[#fecb02]' : ''}`}>{data.name}</span>
+                  </Link>
+                </li>
+              )
+            }
+            )}
           </ul>
         </div>
       </div>

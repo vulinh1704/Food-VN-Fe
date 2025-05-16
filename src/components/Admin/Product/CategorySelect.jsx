@@ -1,7 +1,7 @@
 import { useFormikContext } from 'formik';
 import { useEffect, useState } from 'react';
 import Select from 'react-select';
-import { getAll } from '../../../services/category-service/category-service';
+import { getAllData as getAll } from '../../../services/category-service/category-service';
 
 const CategorySelect = () => {
     const [categories, setCategories] = useState([]);
@@ -40,6 +40,17 @@ const CategorySelect = () => {
     useEffect(() => {
         getAllCategories();
     }, []);
+
+
+    useEffect(() => {
+        console.log(values.categoryId);
+        if (values.categoryId && categories.length > 0) {
+            const match = categories.find(c => c.value === values.categoryId);
+            if (match && !displayedCategories.find(c => c.value === match.value)) {
+                setDisplayedCategories(prev => [match, ...prev]);
+            }
+        }
+    }, [values.categoryId, categories]);
 
     return (
         <Select

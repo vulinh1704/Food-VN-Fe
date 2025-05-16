@@ -7,6 +7,7 @@ import Img1 from "../../../../assets/women/women.png";
 import Img2 from "../../../../assets/women/women2.jpg";
 import Img3 from "../../../../assets/women/women3.jpg";
 import Img4 from "../../../../assets/women/women4.jpg";
+import { getAllData } from "../../../../services/category-service/category-service";
 
 const ProductsData = [
   { id: 1, img: Img1, title: "Thời Trang Nam" },
@@ -24,6 +25,11 @@ const Categories = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [isEnd, setIsEnd] = useState(false);
   const [isBeginning, setIsBeginning] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const getAllCategories = async () => {
+    const list = await getAllData();
+    setCategories(list);
+  }
 
   useEffect(() => {
     setIsMounted(true);
@@ -34,6 +40,7 @@ const Categories = () => {
         setIsEnd(swiperRef.current.isEnd);
       });
     }
+    getAllCategories();
   }, []);
 
   return (
@@ -63,12 +70,12 @@ const Categories = () => {
           }}
           className="!pb-10"
         >
-          {ProductsData.map((data) => (
-            <SwiperSlide key={data.id} className="flex flex-col items-center transition-transform duration-300 hover:scale-110">
+          {categories.map((item) => (
+            <SwiperSlide key={item.id} className="flex flex-col items-center transition-transform duration-300 hover:scale-110">
               <div className="w-[180px] h-[180px] flex items-center justify-center bg-white shadow-lg rounded-lg p-1 transition-transform duration-300 hover:border-2 border-[#f2eddc]">
-                <img src={data.img} alt={data.title} className="max-w-[170px] max-h-[170px] object-contain" />
+                <img src={item.image} alt={item.name} className="max-w-[170px] max-h-[170px] object-contain" />
               </div>
-              <h3 className="text-sm font-semibold-900 mt-2 text-center">{data.title}</h3>
+              <h3 className="text-sm font-semibold-900 mt-2 text-center">{item.title}</h3>
             </SwiperSlide>
           ))}
         </Swiper>

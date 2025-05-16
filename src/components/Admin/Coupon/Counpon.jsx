@@ -32,6 +32,7 @@ export const Coupon = () => {
         toDate: null
     });
     const getAll = async (params) => {
+        if (!params) params = paramsDefault;
         const data = await getAllCoupons(params);
         const { content, totalPages } = data;
         params.page = page - 1;
@@ -130,7 +131,7 @@ export const Coupon = () => {
     return (
         <>
             <NotificationPortal />
-            <AddCoupon isOpenAddPopup={isOpenAddPopup} setIsOpenAddPopup={setIsOpenAddPopup} />
+            <AddCoupon isOpenAddPopup={isOpenAddPopup} setIsOpenAddPopup={setIsOpenAddPopup} getAllCoupons={getAllCoupons} />
             <EditCoupon isOpenEditPopup={isOpenEditPopup} setIsOpenEditPopup={setIsOpenEditPopup} idEdit={idEdit} />
             <ConfirmDeleteModal isOpen={isOpenDeletePopup} onClose={() => setIsOpenDeletePopup(false)} onConfirm={onConfirmDeleted}
                 title="Delete Category" message={`Are you sure you want to delete ` + couponDelete.name + `?`} />

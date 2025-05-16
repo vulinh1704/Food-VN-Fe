@@ -17,6 +17,17 @@ const CouponCheckboxList = () => {
         const fetchCoupons = async () => {
             const data = await getAll();
             setCoupons(data);
+
+            if (values.couponIds && values.couponIds.length > 0) {
+                const matched = data
+                    .filter(c => values.couponIds.includes(c.id))
+                    .map(c => ({
+                        label: `${c.name} | From: ${c.fromDate ? formatDateTimeLocal(c.fromDate) : "_"} - To: ${formatDateTimeLocal(c.toDate)}`,
+                        value: c.id,
+                    }));
+                setSelectedCoupons(matched);
+            }
+
         };
         fetchCoupons();
     }, [])
@@ -41,7 +52,7 @@ const CouponCheckboxList = () => {
                 isMulti
                 cacheOptions
                 defaultOptions={coupons.map(coupon => ({
-                    label: `${coupon.name} | From: ${coupon.fromDate ? formatDateTimeLocal(coupon.fromDate): "_"} - To: ${formatDateTimeLocal(coupon.toDate)}`,
+                    label: `${coupon.name} | From: ${coupon.fromDate ? formatDateTimeLocal(coupon.fromDate) : "_"} - To: ${formatDateTimeLocal(coupon.toDate)}`,
                     value: coupon.id,
                 }))}
                 loadOptions={loadOptions}

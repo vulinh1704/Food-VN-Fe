@@ -21,13 +21,14 @@ const CouponSchema = Yup.object().shape({
         .nullable(),
 });
 
-const AddCoupon = ({ isOpenAddPopup, setIsOpenAddPopup }) => {
+const AddCoupon = ({ isOpenAddPopup, setIsOpenAddPopup, getAllCoupons }) => {
     const { showNotification, NotificationPortal } = useNotificationPortal();
 
     const add = async (values) => {
-        addCoupon(values);
+        await addCoupon(values);
         showNotification(NotificationType.SUCCESS, "Add coupon success.");
         setIsOpenAddPopup(false);
+        await getAllCoupons();
     }
 
     return (

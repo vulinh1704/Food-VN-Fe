@@ -5,6 +5,7 @@ import Search from "./Search/Search";
 import ProductDetail from "./ProductDetail/ProductDetail";
 import Order from "./Order/Order";
 import Profile from "./Profile/Profile";
+import Information from "./Profile/Infomation";
 
 const UserRouter = () => {
 
@@ -16,7 +17,9 @@ const UserRouter = () => {
                     <Route path="/foods" element={<Search />} />
                     <Route path="/detail/:id" element={<ProductDetail />} />
                     <Route path="/orders" element={<Order />} />
-                    <Route path="/info" element={<Profile />} />
+                    <Route path="/info" element={<Profile />}>
+                        <Route index element={<Information />} />
+                    </Route>
                 </Route>
             </Routes>
         </>

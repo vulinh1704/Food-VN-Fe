@@ -41,7 +41,7 @@ const styleMap = {
 export function Notification({ type, message }) {
     return (
         <div
-            className={`flex items-start gap-2 border-l-4 p-4 rounded shadow ${styleMap[type]}`}
+            className={`flex items-start gap-2 border-l-4 p-4 rounded shadow ${styleMap[type]} z-1000`}
         >
             <div className="mt-1">
                 <Icon type={type} />
