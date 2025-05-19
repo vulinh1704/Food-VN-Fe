@@ -1,40 +1,86 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import StepsBar from './StepsBar';
 import { CiTrash } from "react-icons/ci";
 import { useNavbar } from '../../../providers/users/NavBarProvider';
 import { ACTIVE_VALUE_NAVBAR } from '../../../lib/app-const';
+import { useOrder } from '../../../providers/users/OrderProvider';
+import { getAllByOrderId } from '../../../services/order-service/order-service';
+import { formatNumberWithDots } from '../../../lib/format-hepper';
 
 const Order = () => {
-    const cartItems = [
-        {
-            name: 'Bàn xoay mặt kính 30cm',
-            price: 250000,
-            sku: 'B2218',
-            quantity: 2,
-            total: 500000,
-            image: 'https://via.placeholder.com/60x60?text=SP1',
-        },
-        {
-            name: 'Bột matcha Việt Nam 100g',
-            price: 65000,
-            sku: 'B4962',
-            quantity: 1,
-            total: 65000,
-            image: 'https://via.placeholder.com/60x60?text=SP2',
-        },
-        {
-            name: 'Bánh cracker vị rau AFC Dinh Dưỡng hộp 172g',
-            price: 29000,
-            sku: 'B6429',
-            quantity: 1,
-            total: 29000,
-            image: 'https://via.placeholder.com/60x60?text=SP3',
-        },
-    ];
+    const [list, setList] = useState([]);
+    const { card } = useOrder();
+    const [total, setTotal] = useState(0);
 
-    const subtotal = cartItems.reduce((sum, item) => sum + item.total, 0);
-    const codFee = 20000;
-    const total = subtotal + codFee;
+    // const deleteOrderDetail = async (od) => {
+    //     await removeOrderDetailByOrderIdAndProductId(od.orderId, od.productId);
+    //     await getAll();
+    // }
+
+    // const saveOrderDetail = async (od) => {
+    //     let data = {
+    //         orders: {
+    //             id: od.orderId
+    //         },
+    //         product: {
+    //             id: od.productId
+    //         },
+    //         price: od.price,
+    //         quantity: 1
+    //     }
+    //     await addOrderDetail(data);
+    //     await getAll();
+    // }
+
+    const getAll = async () => {
+        let data = await getAllByOrderId(card.id);
+        const cartMap = new Map();
+        data.forEach(item => {
+            const product = item.product;
+            const productId = product.id;
+            const firstImage = JSON.parse(product.images)[0];
+
+            if (cartMap.has(productId)) {
+                const existing = cartMap.get(productId);
+                existing.quantity += item.quantity;
+                existing.total = applyCoupons(item.quantity * product.price, product.coupons);
+            } else {
+                cartMap.set(productId, {
+                    productId: product.id,
+                    orderId: item.orders.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: item.quantity,
+                    coupons: product.coupons,
+                    total: applyCoupons(item.quantity * product.price, product.coupons),
+                    image: firstImage
+                });
+            }
+        });
+        const cartItems = Array.from(cartMap.values());
+        setList(cartItems);
+        const totalAmount = cartItems.reduce((sum, item) => sum + item.total, 0);
+        setTotal(totalAmount);
+    }
+
+    const applyCoupons = (price, coupons) => {
+        let finalPrice = price;
+
+        coupons?.forEach(coupon => {
+            if (coupon.type === 'percent') {
+                finalPrice = finalPrice - (price * coupon.discount / 100);
+            } else if (coupon.type === 'fixed') {
+                finalPrice = finalPrice - coupon.discount;
+            }
+        });
+        console.log(finalPrice);
+        return Math.max(0, finalPrice);
+    };
+
+    useEffect(() => {
+        if (card) getAll();
+    }, [])
+
     const { setActive } = useNavbar();
     useEffect(() => {
         setActive(ACTIVE_VALUE_NAVBAR.ORDER);
@@ -51,19 +97,20 @@ const Order = () => {
                     {/* Bảng sản phẩm */}
                     <div className="md:col-span-2">
                         <div className="grid grid-cols-6 font-semibold text-gray-600 border-b pb-2 mb-4">
-                            <span className="col-span-3">SẢN PHẨM</span>
-                            <span className="text-center">GIÁ</span>
-                            <span className="text-center">SỐ LƯỢNG</span>
-                            <span className="text-right">TẠM TÍNH</span>
+                            <span className="col-span-3">Food</span>
+                            <span className="text-center">Price</span>
+                            <span className="text-center">Quantity</span>
+                            <span className="text-right">Estimated total</span>
                         </div>
 
-                        {cartItems.map((item, index) => (
+                        {list.map((item, index) => (
                             <div key={index} className="grid grid-cols-6 items-center py-4 border-b text-sm">
                                 <div className="col-span-3 flex items-center gap-3">
                                     <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded" />
                                     <div>
                                         <div className="font-medium">{item.name}</div>
-                                        <div className="text-xs text-gray-500">SKU: {item.sku}</div>
+                                        <div className="text-xs text-gray-500">Coupons: {item?.coupons.map((e, i) => (<><span className=''>{e.name} - {formatNumberWithDots(e.discount)}{e.type == "percent" ? "%" : "VNĐ"}</span>{i < item?.coupons?.length - 1 ? ", " : ""}</>))}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="text-center text-gray-700">{item.price.toLocaleString()} đ</div>
@@ -81,11 +128,11 @@ const Order = () => {
                         <h3 className="text-lg font-semibold mb-4">CART TOTALS</h3>
                         <div className="flex justify-between text-sm mb-2">
                             <span>Subtotal</span>
-                            <span>{subtotal.toLocaleString()} đ</span>
+                            <span>{total.toLocaleString()} đ</span>
                         </div>
                         <div className="flex justify-between text-sm mb-2">
-                            <span>Phí COD</span>
-                            <span>{codFee.toLocaleString()} đ</span>
+                            <span>COD Fee</span>
+                            <span>{0} đ</span>
                         </div>
                         <div className="flex justify-between font-bold text-lg border-t pt-4 mt-4">
                             <span>TOTAL</span>

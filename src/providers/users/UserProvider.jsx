@@ -3,10 +3,16 @@ const UserContext = createContext({});
 
 export const UserProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [authPopup, setAuthPopup] = useState(false);
+    const [orderPopup, setOrderPopup] = useState(false);
 
     const value = {
         user,
-        setUser
+        setUser,
+        authPopup,
+        setAuthPopup,
+        orderPopup,
+        setOrderPopup
     };
 
     return (

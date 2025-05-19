@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { ACTIVE_VALUE_NAVBAR } from '../../../lib/app-const';
 import { useNavbar } from '../../../providers/users/NavBarProvider';
-import { Outlet } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import { getInfo } from '../../../services/auth-service/auth-service';
+import { PROFILE_MENU, useProfileMenu } from '../../../providers/users/ProfileMenuProvider';
+
 
 const Profile = () => {
   const { setActive } = useNavbar();
   const [userInfo, setUserInfo] = useState();
+  const { option } = useProfileMenu();
 
   const getUserInfo = async () => {
     const info = await getInfo();
@@ -26,7 +29,7 @@ const Profile = () => {
           <aside className="w-64 border-r border-gray-200 p-4">
             <div className="flex items-center mb-6 gap-3">
               <img
-                src={userInfo.avatar ? userInfo.avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
+                src={userInfo.avatar ? userInfo.avatar : "https://cdn-icons-png.flaticon.com/512/149/149071.png"}
                 alt="avatar"
                 className="w-10 h-10 rounded-full"
               />
@@ -35,10 +38,10 @@ const Profile = () => {
               </div>
             </div>
             <nav className="space-y-4 text-sm text-gray-700">
-              <div className="text-orange-500 font-semibold">Your Account</div>
+              <div className={`text-500 font-semibold ${option == PROFILE_MENU.ADDRESS || option == PROFILE_MENU.INFO ? 'text-[#fecb02]' : ''}`}>Your Account</div>
               <ul className="pl-2 space-y-2 text-sm">
-                <li className="text-orange-500">Information</li>
-                <li>Address</li>
+                <Link to={"/info"}><li className={`${option == PROFILE_MENU.INFO ? 'text-[#fecb02]' : ''}`}>Information</li></Link>
+                <Link to={"/info/address"}><li className={`${option == PROFILE_MENU.ADDRESS ? 'text-[#fecb02]' : ''}`}>Address</li></Link>
                 <li>Change Password</li>
               </ul>
               <div className="pt-4 space-y-2">
@@ -47,7 +50,7 @@ const Profile = () => {
             </nav>
           </aside>
 
-          <Outlet userInfo={userInfo} getUserInfo={getUserInfo} setUserInfo={setUserInfo}/>
+          <Outlet />
         </div>
       }
 

@@ -9,6 +9,7 @@ import { useNavbar } from "../../../providers/users/NavBarProvider";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ACTIVE_VALUE_NAVBAR } from "../../../lib/app-const";
 import { useUser } from "../../../providers/users/UserProvider";
+import { useOrder } from "../../../providers/users/OrderProvider";
 
 const Menu = [
   {
@@ -46,6 +47,8 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
     navigate(`/foods?name=${foodName}`);
   }
   const { user } = useUser();
+  const { totalDetail } = useOrder();
+
   useEffect(() => {
     const name = searchParams.get('name');
     if (name != null || name != undefined) setFoodName(name);
@@ -132,7 +135,7 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
                     <IoCartOutline className="stroke-gray-600 stroke-[0.5] text-2xl transition-colors duration-200 hover:stroke-[#fecb02]" />
                   </button>
                   <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                    0
+                    {totalDetail}
                   </span>
                 </div>
               </div>

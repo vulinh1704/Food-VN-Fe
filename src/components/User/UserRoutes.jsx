@@ -5,7 +5,8 @@ import Search from "./Search/Search";
 import ProductDetail from "./ProductDetail/ProductDetail";
 import Order from "./Order/Order";
 import Profile from "./Profile/Profile";
-import Information from "./Profile/Infomation";
+import Information from "./Profile/Information";
+import Address from "./Profile/Address";
 
 const UserRouter = () => {
 
@@ -19,6 +20,7 @@ const UserRouter = () => {
                     <Route path="/orders" element={<Order />} />
                     <Route path="/info" element={<Profile />}>
                         <Route index element={<Information />} />
+                        <Route path="address" element={<Address />} />
                     </Route>
                 </Route>
             </Routes>

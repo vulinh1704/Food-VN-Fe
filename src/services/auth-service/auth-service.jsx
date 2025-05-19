@@ -1,7 +1,9 @@
+import axios from "axios";
 import axiosClient from "../../lib/axios-client"
 
 export const register = async (user) => {
-    return axiosClient.post("/register", user);
+    let { data } = await axiosClient.post("/register", user);
+    return data;
 }
 
 export const login = async (user) => {
@@ -17,4 +19,30 @@ export const getInfo = async () => {
 export const updateInfo = async (values) => {
     let { data } = await axiosClient.put("/users/update-info", values);
     return data;
+}
+
+
+export const getAddressVN = async (_params = { depth: 1 }) => {
+    let { data } = await axios.get('https://provinces.open-api.vn/api', _params);
+    return data;
+}
+
+
+export const addAddress = async (_params) => {
+    let { data } = await axiosClient.post('/addresses/save', _params);
+    return data;
+}
+
+export const getAllAddress = async (_params) => {
+    let { data } = await axiosClient.get('/addresses/get-all');
+    return data;
+}
+
+export const getOneAddress = async (id) => {
+    let { data } = await axiosClient.get('/addresses/get-one/' + id);
+    return data;
+}
+
+export const deleteAddress = async (id) => {
+    return axiosClient.delete("/addresses/delete/" + id);
 }

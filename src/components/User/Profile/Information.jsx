@@ -7,12 +7,14 @@ import { v4 } from "uuid";
 import { useNotificationPortal } from "../../Supporter/NotificationPortal";
 import { NotificationType } from "../../Supporter/Notification";
 import { useUser } from "../../../providers/users/UserProvider";
+import { PROFILE_MENU, useProfileMenu } from "../../../providers/users/ProfileMenuProvider";
 
 const Information = () => {
     const [userInfo, setUserInfo] = useState(null);
     const { showNotification, NotificationPortal } = useNotificationPortal();
     const [editingField, setEditingField] = useState('');
     const { setUser } = useUser();
+    const { setOption } = useProfileMenu();
 
     const uploadFile = (file) => {
         if (file == null) return;
@@ -45,6 +47,7 @@ const Information = () => {
 
     useEffect(() => {
         getUserInfo();
+        setOption(PROFILE_MENU.INFO);
     }, []);
     return (
         <>
@@ -89,7 +92,7 @@ const Information = () => {
                                                     <span>{values.email}</span>
                                                     <button
                                                         type="button"
-                                                        className="text-blue-500 ml-2"
+                                                        className="text-[#fecb02] text-500 ml-2"
                                                         onClick={() => setEditingField('email')}
                                                     >
                                                         Change
@@ -108,10 +111,10 @@ const Information = () => {
                                                 />
                                             ) : (
                                                 <>
-                                                    <span>{values.phone || 'not yet'}</span>
+                                                    <span>{values.phoneNumber || 'not yet'}</span>
                                                     <button
                                                         type="button"
-                                                        className="text-blue-500 ml-2"
+                                                        className="text-[#fecb02] text-500 ml-2"
                                                         onClick={() => setEditingField('phoneNumber')}
                                                     >
                                                         Change
@@ -146,7 +149,7 @@ const Information = () => {
 
                                         <button
                                             type="submit"
-                                            className="bg-orange-500 text-white px-4 py-2 rounded mt-4"
+                                            className="bg-[#fecb02] text-white px-4 py-2 rounded mt-4"
                                         >
                                             Save
                                         </button>

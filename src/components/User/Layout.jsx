@@ -8,10 +8,11 @@ import AuthPopup from "./Popup/AuthPopup";
 import SidebarMenuPopup from "./Popup/SideBarMenuPopup";
 import { Outlet } from "react-router-dom";
 import { NavBarProvider } from "../../providers/users/NavBarProvider";
+import { useUser } from "../../providers/users/UserProvider";
 
 const Layout = () => {
-    const [orderPopup, setOrderPopup] = React.useState(false);
-    const [authPopup, setAuthPopup] = React.useState(false);
+    const { orderPopup, setOrderPopup } = useUser();
+    const { authPopup, setAuthPopup } = useUser();
     const [isOpenSideBar, setIsOpenSideBar] = React.useState(false);
 
     const handleOrderPopup = () => {
@@ -42,7 +43,7 @@ const Layout = () => {
                 <div className="bg-[#f5f5f5] dark:bg-gray-900 dark:text-white duration-200 ">
                     <Navbar handleOrderPopup={handleOrderPopup} handleAuthPopup={handleAuthPopup} handleSideBarMenuPopup={handleSideBarMenuPopup} />
                     <div className="pt-[170px]">
-                        <Outlet />
+                        <Outlet authPopup={authPopup} setAuthPopup={setAuthPopup} />
                     </div>
                     <Popup orderPopup={orderPopup} setOrderPopup={setOrderPopup} />
                     <AuthPopup isOpen={authPopup} setIsOpen={handleAuthPopup} />
