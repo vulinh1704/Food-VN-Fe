@@ -126,18 +126,32 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
                     <FaRegUser className="stroke-gray-600 text-xl transition-colors duration-200 hover:text-[#fecb02]" />
                   </button>
                 }
-
-                <div className="relative">
-                  <button
-                    onClick={handleOrderPopup}
-                    className="p-2 flex items-center justify-center"
-                  >
-                    <IoCartOutline className="stroke-gray-600 stroke-[0.5] text-2xl transition-colors duration-200 hover:stroke-[#fecb02]" />
-                  </button>
-                  <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
-                    {totalDetail}
-                  </span>
-                </div>
+                {
+                  user ? <>
+                    <div className="relative">
+                      <button
+                        onClick={handleOrderPopup}
+                        className="p-2 flex items-center justify-center"
+                      >
+                        <IoCartOutline className="stroke-gray-600 stroke-[0.5] text-2xl transition-colors duration-200 hover:stroke-[#fecb02]" />
+                      </button>
+                      <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        {totalDetail}
+                      </span>
+                    </div>
+                  </> :
+                    <div className="relative">
+                      <button
+                        onClick={handleAuthPopup}
+                        className="p-2 flex items-center justify-center"
+                      >
+                        <IoCartOutline className="stroke-gray-600 stroke-[0.5] text-2xl transition-colors duration-200 hover:stroke-[#fecb02]" />
+                      </button>
+                      <span className="absolute -top-1 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        {totalDetail}
+                      </span>
+                    </div>
+                }
               </div>
             </div>
           </div>
@@ -148,7 +162,7 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
         <div className="mx-auto flex justify-center">
           <ul className="flex items-center space-x-11 font-medium text-black">
             {Menu.map((data) => {
-              if (data.id == ACTIVE_VALUE_NAVBAR.INFOMATION && !user) {
+              if ((data.id == ACTIVE_VALUE_NAVBAR.INFOMATION || data.id == ACTIVE_VALUE_NAVBAR.ORDER) && !user) {
                 return <li>
                   <a
                     onClick={handleAuthPopup}

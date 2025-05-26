@@ -26,7 +26,6 @@ export const OrderProvider = ({ children }) => {
             }
         });
         const cartItems = Array.from(cartMap.values());
-        console.log(cartItems);
         setTotalDetail(cartItems.length);
     }
 

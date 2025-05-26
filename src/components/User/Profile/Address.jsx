@@ -70,6 +70,7 @@ const Popup = ({ isOpen, setIsOpen, addressUpdate, setAddressUpdate }) => {
         }
         if (addressUpdate) data.id = addressUpdate.id;
         await addAddress(data);
+        setIsOpen(false);
     }
 
     return (
@@ -93,7 +94,6 @@ const Popup = ({ isOpen, setIsOpen, addressUpdate, setAddressUpdate }) => {
                         handleSubmit(values);
                         resetForm();
                         setActiveTab('city');
-                        setIsOpen(false);
                     }}>
                     {({ setFieldValue }) => (
                         <Form>
@@ -277,6 +277,7 @@ const Address = () => {
 
     const getAll = async () => {
         let data = await getAllAddress();
+        data = [...data].sort((a, b) => (b.default ? 1 : 0) - (a.default ? 1 : 0));
         setList(data);
     }
 
@@ -321,7 +322,7 @@ const Address = () => {
                         list.length != 0 && <div>
                             {
                                 list.map(item => <>
-                                    <div className="bg-white border rounded-md p-5 flex justify-between items-start">
+                                    <div className="bg-white border rounded-md p-5 flex justify-between items-start mb-5">
                                         <div>
                                             <div className="mb-1">
                                                 <span className="font-semibold">{item.fullName}</span>
@@ -331,9 +332,11 @@ const Address = () => {
                                             <div className="text-sm text-gray-600">{item.addressDetail}</div>
                                             <div className="text-sm text-gray-700">{item.address}</div>
 
-                                            <span className="inline-block mt-2 px-2 py-1 text-xs text-[#fecb02] border border-[#fecb02] rounded">
-                                                Default
-                                            </span>
+                                            {
+                                                item.default && <span className="inline-block mt-2 px-2 py-1 text-xs text-[#fecb02] border border-[#fecb02] rounded">
+                                                    Default
+                                                </span>
+                                            }
                                         </div>
 
                                         <div className="text-right space-y-2">

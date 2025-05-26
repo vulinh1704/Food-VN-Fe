@@ -10,6 +10,7 @@ import { useNotificationPortal } from "../../Supporter/NotificationPortal";
 import { NotificationType } from "../../Supporter/Notification";
 import { useOrder } from "../../../providers/users/OrderProvider";
 import { getCard } from "../../../services/order-service/order-service";
+import { useNavigate } from "react-router-dom";
 
 const UserRegisterSchema = Yup.object().shape({
   username: Yup.string()
@@ -28,6 +29,7 @@ const LoginPopup = ({ isOpen, setIsOpen }) => {
   const { showNotification, NotificationPortal } = useNotificationPortal();
   const { setUser } = useUser();
   const { setCard } = useOrder();
+  const navigate = useNavigate();
 
   const submit = async (values) => {
     try {
@@ -51,7 +53,10 @@ const LoginPopup = ({ isOpen, setIsOpen }) => {
     localStorage.setItem("user", JSON.stringify(info));
     setIsOpen(false);
     setUser(info);
-    getUserCard()
+    getUserCard();
+    if (info?.roles?.some(item => item.authority == "ROLE_ADMIN")) {
+      navigate("/admin/");
+    }
   }
 
   return (

@@ -15,6 +15,7 @@ const Profile = () => {
     const info = await getInfo();
     setUserInfo(info);
   }
+  console.log(option);
 
   useEffect(() => {
     setActive(ACTIVE_VALUE_NAVBAR.INFOMATION);
@@ -41,11 +42,13 @@ const Profile = () => {
               <div className={`text-500 font-semibold ${option == PROFILE_MENU.ADDRESS || option == PROFILE_MENU.INFO ? 'text-[#fecb02]' : ''}`}>Your Account</div>
               <ul className="pl-2 space-y-2 text-sm">
                 <Link to={"/info"}><li className={`${option == PROFILE_MENU.INFO ? 'text-[#fecb02]' : ''}`}>Information</li></Link>
-                <Link to={"/info/address"}><li className={`${option == PROFILE_MENU.ADDRESS ? 'text-[#fecb02]' : ''}`}>Address</li></Link>
-                <li>Change Password</li>
+                <Link to={"/info/address"}><li className={`${option == PROFILE_MENU.ADDRESS ? 'text-[#fecb02]' : ''} mt-2`}>Address</li></Link>
+                <Link to={"/info/address"}><li className={`mt-2`}>Change Password</li></Link>
               </ul>
               <div className="pt-4 space-y-2">
-                <div>Orders History</div>
+                <Link to={"/info/invoices"}>
+                  <div className={`${option == PROFILE_MENU.INVOICES ? 'text-[#fecb02]' : ''}`}>Orders History</div>
+                </Link>
               </div>
             </nav>
           </aside>

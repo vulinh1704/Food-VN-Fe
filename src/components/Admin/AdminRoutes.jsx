@@ -4,6 +4,7 @@ import { Dashboard } from "./Dashboard/Dashboard";
 import { Product } from "./Product/Product";
 import { Category } from "./Category/Category";
 import { Coupon } from "./Coupon/Counpon";
+import { Invoices } from "./Invoices/Invoices";
 
 const AdminRouters = () => {
 
@@ -15,6 +16,7 @@ const AdminRouters = () => {
                     <Route path="/products" element={<Product />} />
                     <Route path="/categories" element={<Category />} />
                     <Route path="/coupons" element={<Coupon />} />
+                    <Route path="/invoices" element={<Invoices />} />
                 </Route>
             </Routes>
         </>

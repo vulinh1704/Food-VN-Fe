@@ -5,6 +5,11 @@ export const getCard = async () => {
     return data;
 }
 
+export const getListOrders = async () => {
+    let { data } = await axiosClient.get("/orders/get-list");
+    return data;
+}
+
 export const addOrderDetail = async (_params) => {
     let { data } = await axiosClient.post("/order-details/save", _params);
     return data;
@@ -17,5 +22,10 @@ export const getAllByOrderId = async (id) => {
 
 export const removeOrderDetailByOrderIdAndProductId = async (order_id, product_id) => {
     let { data } = await axiosClient.delete("/order-details/orders/" + order_id + "/products/" + product_id + "/delete");
+    return data;
+}
+
+export const submitOrder = async (_params) => {
+    let { data } = await axiosClient.post("/orders/buy", _params);
     return data;
 }

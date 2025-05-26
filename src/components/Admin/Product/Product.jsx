@@ -28,7 +28,7 @@ export const Product = () => {
     const [categories, setCategories] = useState([]);
 
     const [paramsDefault, setParamsDefault] = useState({
-        size: 3,
+        size: 5,
         sortBy: "createdAt",
         sortDirection: "desc",
         name: '',

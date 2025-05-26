@@ -21,7 +21,7 @@ export const Category = () => {
     const [totalPage, setTotalPage] = useState(1);
     const [idEdit, setIdEdit] = useState(null);;
     const [paramsDefault, setParamsDefault] = useState({
-        size: 3,
+        size: 5,
         sortBy: "createdAt",
         sortDirection: "desc",
         name: ''

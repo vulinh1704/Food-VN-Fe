@@ -122,16 +122,16 @@ const Popup = ({ orderPopup, setOrderPopup }) => {
                     </div>
                   ))
                 ) : (
-                  <p className="text-center text-gray-500">Giỏ hàng trống</p>
+                  <p className="text-center text-gray-500">Card is empty</p>
                 )}
               </div>
               <div className="p-4 border-t">
                 <div className="flex justify-between mb-4">
-                  <span className="font-semibold">TẠM TÍNH:</span>
+                  <span className="font-semibold">SUBTOTAL:</span>
                   <span className="font-semibold">{formatVND(total)}</span>
                 </div>
                 <button className="w-full  bg-[#fecb02] text-white py-2 rounded">
-                  TÍNH TIỀN
+                  PAY NOW
                 </button>
               </div>
             </motion.div>
