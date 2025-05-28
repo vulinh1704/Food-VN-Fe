@@ -1,3 +1,68 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  
+  /* h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+    @apply tracking-tight;
+  }
+
+  h1 {
+    @apply text-4xl font-bold;
+    @apply leading-tight;
+  }
+
+  h2 {
+    @apply text-3xl font-bold;
+    @apply leading-tight;
+  }
+
+  h3 {
+    @apply text-2xl font-semibold;
+    @apply leading-snug;
+  }
+
+  h4 {
+    @apply text-xl font-semibold;
+    @apply leading-snug;
+  }
+
+  h5 {
+    @apply text-lg font-medium;
+  }
+
+  h6 {
+    @apply text-base font-medium;
+  }
+
+  p {
+    @apply text-base font-normal;
+    @apply leading-relaxed;
+  }
+
+  small {
+    @apply text-sm;
+  } */
+
+  /* Filter styles */
+  /* .filter-title {
+    @apply text-base font-medium text-gray-800 mb-3;
+  }
+
+  .filter-group {
+    @apply space-y-2;
+  }
+
+  .filter-item {
+    @apply flex items-center gap-2 text-sm text-gray-600;
+  }
+
+  .filter-count {
+    @apply text-sm text-gray-500;
+  } */
+}

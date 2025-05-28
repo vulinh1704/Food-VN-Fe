@@ -13,13 +13,15 @@ const Home = ({ authPopup, setAuthPopup }) => {
         setActive(ACTIVE_VALUE_NAVBAR.HOME);
     }, []);
     return (
-        <>
+        <div className="flex flex-col min-h-screen">
             <Hero />
-            <Categories />
-            <TopProducts />
-            <Subscribe />
-            <Testimonials />
-        </>
+            <div className="container mx-auto px-4 space-y-16 py-10">
+                <Categories />
+                <TopProducts />
+                <Subscribe />
+                <Testimonials />
+            </div>
+        </div>
     );
 };
 

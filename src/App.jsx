@@ -7,15 +7,19 @@ import { getCard } from "./services/order-service/order-service";
 import { useOrder } from "./providers/users/OrderProvider";
 
 const App = () => {
-
   const { user, setUser } = useUser();
   const { setCard } = useOrder();
   const [isAdmin, setIsAmin] = useState(false);
 
   let info = JSON.parse(localStorage.getItem("user"));
+  
   const getUserCard = async () => {
-    let data = await getCard();
-    setCard(data);
+    try {
+      let data = await getCard();
+      setCard(data);
+    } catch (error) {
+      console.error("Error fetching user card:", error);
+    }
   }
 
   useEffect(() => {
@@ -26,21 +30,20 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    if (user?.roles?.some(item => item.authority == "ROLE_ADMIN")) {
+    if (user?.roles?.some(item => item.authority === "ROLE_ADMIN")) {
       setIsAmin(true);
+    } else {
+      setIsAmin(false);
     }
   }, [user]);
 
   return (
-    <>
-      <Routes>
-        {
-          isAdmin &&
-          <Route path="/admin/*" element={<AdminRouters />} />
-        }
-        <Route path="/*" element={<UserRoutes />} />
-      </Routes>
-    </>
+    <Routes>
+      {isAdmin && (
+        <Route path="/admin/*" element={<AdminRouters />} />
+      )}
+      <Route path="/*" element={<UserRoutes />} />
+    </Routes>
   );
 };
 

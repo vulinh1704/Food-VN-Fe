@@ -29,83 +29,87 @@ const FooterLinks = [
 
 const Footer = () => {
   return (
-    <div className="bg-white border-t-4 border-[#fecb02] font-medium text-gray-600">
-      <div className="container">
-        <div data-aos="zoom-in" className="grid md:grid-cols-3 pb-[40px] pt-5">
-          {/* company details */}
-          <div className="py-8 px-4">
-            <h1 className="sm:text-3xl text-xl font-bold text-[#fecb02] sm:text-left text-justify mb-3 flex items-center gap-3">
-              <img src={footerLogo} alt="" className="max-w-[50px]" />
-              Food.VN
-            </h1>
-            <p className="text-2sm text-gray-600">
-            Enjoy a tasty dish!
+    <div className="bg-gray-50 border-t-4 border-[#fecb02] font-medium text-gray-600">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid md:grid-cols-4 gap-8">
+          {/* Logo and company info */}
+          <div className="md:col-span-1">
+            <div className="flex items-center gap-3 mb-6">
+              <img src={footerLogo} alt="Food.VN Logo" className="w-12 h-12 object-contain" />
+              <h1 className="text-2xl font-bold text-[#fecb02]">Food.VN</h1>
+            </div>
+            <p className="text-gray-600 mb-6">
+              Enjoy delicious dishes with Food.VN!
             </p>
-          </div>
-
-          {/* Footer Links */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 col-span-2 md:pl-10">
-            <div>
-              <div className="py-8 px-4">
-                <h1 className="sm:text-xl text-xl font-bold sm:text-left text-justify mb-3">
-                  Important Links
-                </h1>
-                <ul className="flex flex-col gap-3">
-                  {FooterLinks.map((link) => (
-                    <li
-                      className="cursor-pointer hover:text-[#fecb02] hover:translate-x-1 duration-300"
-                      key={link.title}
-                    >
-                      <span>{link.title}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-            <div>
-              <div className="py-8 px-4">
-                <h1 className="sm:text-xl text-xl font-bold sm:text-left text-justify mb-3">
-                  Links
-                </h1>
-                <ul className="flex flex-col gap-3">
-                  {FooterLinks.map((link) => (
-                    <li
-                      className="cursor-pointer hover:text-[#fecb02] hover:translate-x-1 duration-300"
-                      key={link.title}
-                    >
-                      <span>{link.title}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {/* social links */}
-
-            <div>
-              <div className="flex items-center gap-3 mt-6">
-                <a href="#">
-                  <FaInstagram className="text-3xl" />
-                </a>
-                <a href="#">
-                  <FaFacebook className="text-3xl" />
-                </a>
-                <a href="#">
-                  <FaLinkedin className="text-3xl" />
-                </a>
-              </div>
-              <div className="mt-6">
-                <div className="flex items-center gap-3">
-                  <FaLocationArrow />
-                  <p>Noida, Uttar Pradesh</p>
-                </div>
-                <div className="flex items-center gap-3 mt-3">
-                  <FaMobileAlt />
-                  <p>+91 123456789</p>
-                </div>
-              </div>
+            {/* Social Links */}
+            <div className="flex items-center gap-4">
+              <a href="#" className="text-gray-600 hover:text-[#fecb02] transition-colors">
+                <FaInstagram className="text-2xl" />
+              </a>
+              <a href="#" className="text-gray-600 hover:text-[#fecb02] transition-colors">
+                <FaFacebook className="text-2xl" />
+              </a>
+              <a href="#" className="text-gray-600 hover:text-[#fecb02] transition-colors">
+                <FaLinkedin className="text-2xl" />
+              </a>
             </div>
           </div>
+
+          {/* Links */}
+          <div className="md:col-span-1">
+            <h2 className="text-xl font-bold mb-6">Quick Links</h2>
+            <ul className="space-y-4">
+              {FooterLinks.map((link) => (
+                <li key={link.title}>
+                  <a
+                    href={link.link}
+                    className="hover:text-[#fecb02] transition-colors duration-300 flex items-center gap-2"
+                  >
+                    <span className="w-2 h-2 bg-[#fecb02] rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
+                    {link.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Useful Information */}
+          <div className="md:col-span-1">
+            <h2 className="text-xl font-bold mb-6">Useful Info</h2>
+            <ul className="space-y-4">
+              {FooterLinks.map((link) => (
+                <li key={link.title}>
+                  <a
+                    href={link.link}
+                    className="hover:text-[#fecb02] transition-colors duration-300 flex items-center gap-2"
+                  >
+                    <span className="w-2 h-2 bg-[#fecb02] rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100"></span>
+                    {link.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contact Information */}
+          <div className="md:col-span-1">
+            <h2 className="text-xl font-bold mb-6">Contact Us</h2>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 hover:text-[#fecb02] transition-colors duration-300">
+                <FaLocationArrow className="text-xl" />
+                <p>Hanoi, Vietnam</p>
+              </div>
+              <div className="flex items-center gap-3 hover:text-[#fecb02] transition-colors duration-300">
+                <FaMobileAlt className="text-xl" />
+                <p>+84 123 456 789</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Copyright */}
+        <div className="border-t border-gray-200 mt-12 pt-8 text-center">
+          <p className="text-gray-600">© 2024 Food.VN. All rights reserved.</p>
         </div>
       </div>
     </div>

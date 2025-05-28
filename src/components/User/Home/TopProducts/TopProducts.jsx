@@ -64,16 +64,9 @@ const TopProducts = () => {
               data-aos="zoom-in"
               className="rounded-md bg-white relative shadow-xl duration-300 group min-w-full min-h-full hover:border border-[#fecb02]"
             >
-
-              {data.quantity == 0 && (
-                <div className="absolute top-4 left-14 bg-white bg-opacity-70 text-black text-2xs px-2 py-2 text-sm font-bold-300 shadow-md z-10 flex items-center gap-1">
-                  <FaExclamationCircle className="text-red-500" /> HẾT HÀNG
-                </div>
-              )}
-
               <div className="relative">
                 {data.coupons && data.coupons.length > 0 && (
-                  <div className="absolute right-2 top-[-38px] flex flex-col gap-1 z-10">
+                  <div className="absolute right-2 top-2 flex flex-col gap-1 z-10">
                     {data.coupons.map((item, index) => (
                       <div
                         key={index}
@@ -84,32 +77,58 @@ const TopProducts = () => {
                     ))}
                   </div>
                 )}
-              </div>
 
-
-
-              {/* image section */}
-              <div className="h-[150px]">
-                <Link to={"/detail/1"}>
-                  <img
-                    src={JSON.parse(data.images)[0]}
-                    alt=""
-                    className="w-[180px] h-[180px] block mx-auto transform -translate-y-10 group-hover:scale-105 duration-300 drop-shadow-md object-contain"
-                  />
+                <Link to={"/detail/" + data.id}>
+                  <div className="p-4">
+                    <div className="relative">
+                      <img
+                        src={JSON.parse(data.images)[0]}
+                        alt={data.name}
+                        className="w-full h-[150px] object-contain group-hover:scale-105 duration-300"
+                      />
+                      {data.quantity == 0 && (
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white bg-opacity-80 text-red-500 px-2 py-1 text-xs font-semibold shadow-md z-20 flex items-center gap-1.5 rounded">
+                          <FaExclamationCircle /> SOLD OUT
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2 mt-4">
+                      <h3 className="font-semibold text-sm text-center line-clamp-2 min-h-[40px]">
+                        {data.name}
+                      </h3>
+                      <div className="text-center min-h-[60px] flex flex-col justify-center">
+                        {data.coupons && data.coupons.length > 0 ? (
+                          <>
+                            <p className="text-gray-400 line-through text-sm mb-1">{formatNumberWithDots(data.price)} VNĐ</p>
+                            <p className="text-red-500 font-bold text-base">
+                              {formatNumberWithDots(
+                                Math.max(
+                                  data.coupons.reduce((price, coupon) => {
+                                    if (coupon.type === "percent") {
+                                      return price - (price * coupon.discount / 100);
+                                    }
+                                    return price - coupon.discount;
+                                  }, data.price),
+                                  0
+                                )
+                              )} VNĐ
+                            </p>
+                          </>
+                        ) : (
+                          <p className="text-red-500 font-bold text-base">{formatNumberWithDots(data.price)} VNĐ</p>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <StarRating rating={data.score} />
+                      </div>
+                    </div>
+                  </div>
                 </Link>
               </div>
-              {/* details section */}
+
               <div className="p-3 text-center">
-                {/* star rating */}
-                <div className="w-full flex items-center justify-center gap-1">
-                  <StarRating rating={data.score} />
-                </div>
-                <h1 className="text-md font-bold-500 py-1 line-clamp-1 px-2">{data.name}</h1>
-                <p className="text-gray-600 duration-300 text-1/2xl line-clamp-2 py-1/2">
-                  {formatVND(data.price)}
-                </p>
                 <button
-                  className={`w-[180px] border-2 duration-300 text-sm font-sans py-2 px-4 rounded-md mt-4 tracking-wide ${data.quantity > 0 ? 'text-[#fecb02] border-[#fecb02] hover:scale-105 hover:text-md' : 'text-gray-400'}`}
+                  className={`w-full border-2 duration-300 text-sm font-sans py-2 px-4 rounded-md tracking-wide ${data.quantity > 0 ? 'text-[#fecb02] border-[#fecb02] hover:scale-105 hover:bg-[#fecb02] hover:text-white' : 'text-gray-400 border-gray-200'}`}
                   onClick={() => { saveOrderDetail(data) }}
                   disabled={data.quantity == 0}
                 >

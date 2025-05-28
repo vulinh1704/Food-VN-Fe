@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Logo from "../../../assets/logo.png";
 import { IoMdSearch, IoMdHome } from "react-icons/io";
 import { FaBars, FaCircleInfo } from "react-icons/fa6";
-import { FaRegUser, FaCcAmazonPay } from "react-icons/fa";
+import { FaRegUser, FaCcAmazonPay, FaSignOutAlt } from "react-icons/fa";
 import { IoCartOutline } from "react-icons/io5";
 import { MdFastfood } from "react-icons/md";
 import { useNavbar } from "../../../providers/users/NavBarProvider";
@@ -42,17 +42,40 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
   const { active, setActive } = useNavbar();
   const navigate = useNavigate();
   const [foodName, setFoodName] = useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchParams] = useSearchParams();
-  const searchFoodName = () => {
-    navigate(`/foods?name=${foodName}`);
-  }
-  const { user } = useUser();
+  const { user, setUser } = useUser();
   const { totalDetail } = useOrder();
+
+  const logout = () => {
+    localStorage.clear();
+    setUser(null);
+    setCard(null); // Reset cart data when logout
+    navigate("/");
+  };
 
   useEffect(() => {
     const name = searchParams.get('name');
     if (name != null || name != undefined) setFoodName(name);
   }, [])
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isDropdownOpen && !event.target.closest('.user-dropdown')) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isDropdownOpen]);
+
+  const searchFoodName = () => {
+    navigate(`/foods?name=${foodName}`);
+  }
+
   return (
     <div className="shadow-md bg-white duration-200 z-40 fixed top-0 left-0 w-full">
       <div className="w-full border-b border-gray-300">
@@ -111,14 +134,38 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
                 </div>
               </div>
               <div className="lg:w-auto w-full hidden lg:flex justify-center lg:justify-end items-center gap-4">
-                {user ? <>
-                  <Link
-                    className="p-1/2"
-                    to="/info"
-                  >
-                    <FaRegUser className="stroke-gray-600 text-xl transition-colors duration-200 hover:text-[#fecb02]" />
-                  </Link>
-                </> :
+                {user ? 
+                  <div className="relative user-dropdown">
+                    <button
+                      className="p-1/2"
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    >
+                      <FaRegUser className="stroke-gray-600 text-xl transition-colors duration-200 hover:text-[#fecb02]" />
+                    </button>
+                    {isDropdownOpen && (
+                      <div className="absolute left-0 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100">
+                        <Link
+                          to="/info"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                          onClick={() => setIsDropdownOpen(false)}
+                        >
+                          <FaRegUser className="mr-2" />
+                          Information
+                        </Link>
+                        <button
+                          onClick={() => {
+                            logout();
+                            setIsDropdownOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                        >
+                          <FaSignOutAlt className="mr-2" />
+                          Logout
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                :
                   <button
                     className="p-1/2"
                     onClick={handleAuthPopup}

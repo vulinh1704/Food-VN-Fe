@@ -11,6 +11,7 @@ import { NotificationType } from "../../Supporter/Notification";
 import { useOrder } from "../../../providers/users/OrderProvider";
 import { getCard } from "../../../services/order-service/order-service";
 import { useNavigate } from "react-router-dom";
+import Loading from "../../Supporter/Loading";
 
 const UserRegisterSchema = Yup.object().shape({
   username: Yup.string()
@@ -23,39 +24,74 @@ const UserRegisterSchema = Yup.object().shape({
     .required('Email is required!'),
 });
 
-const LoginPopup = ({ isOpen, setIsOpen }) => {
-  const [isRegister, setIsRegister] = useState(false);
+const AuthPopup = ({ isOpen, setIsOpen }) => {
+  const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const { showNotification, NotificationPortal } = useNotificationPortal();
   const { setUser } = useUser();
   const { setCard } = useOrder();
   const navigate = useNavigate();
 
-  const submit = async (values) => {
-    try {
-      values.confirmPassword = values.password;
-      await register(values);
-      setIsRegister(false);
-    } catch (e) {
-      console.log(e);
-      showNotification(NotificationType.ERROR, e.response.data.message);
+  useEffect(() => {
+    // Check if there are saved credentials
+    const savedCredentials = localStorage.getItem('savedCredentials');
+    if (savedCredentials) {
+      const { username, password } = JSON.parse(savedCredentials);
+      // Set initial values for the login form
+      if (!isLogin) {
+        const loginForm = document.querySelector('form');
+        if (loginForm) {
+          loginForm.querySelector('input[name="username"]').value = username;
+          loginForm.querySelector('input[name="password"]').value = password;
+        }
+      }
     }
-  }
-
-  const getUserCard = async () => {
-    let data = await getCard();
-    setCard(data);
-  }
+  }, [isLogin]);
 
   const loginSubmit = async (values) => {
-    let info = await login(values);
-    localStorage.setItem("accessToken", info.accessToken);
-    localStorage.setItem("user", JSON.stringify(info));
-    setIsOpen(false);
-    setUser(info);
-    getUserCard();
-    if (info?.roles?.some(item => item.authority == "ROLE_ADMIN")) {
-      navigate("/admin/");
+    try {
+      setIsLoading(true);
+      const data = await login(values);
+      setUser(data);
+      localStorage.setItem("user", JSON.stringify(data));
+      localStorage.setItem("accessToken", data.accessToken);
+      if (rememberMe) {
+        localStorage.setItem('savedCredentials', JSON.stringify({
+          username: values.username,
+          password: values.password
+        }));
+      }
+      await getUserCard();
+      showNotification(NotificationType.SUCCESS, "Login success");
+      setIsOpen(false);
+    } catch (e) {
+      showNotification(NotificationType.ERROR, e.response.data.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const registerSubmit = async (values) => {
+    try {
+      setIsLoading(true);
+      await register(values);
+      showNotification(NotificationType.SUCCESS, "Register success");
+      setIsLogin(true);
+    } catch (e) {
+      showNotification(NotificationType.ERROR, e.response.data.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const getUserCard = async () => {
+    try {
+      let data = await getCard();
+      setCard(data);
+    } catch (error) {
+      console.error("Error fetching user card:", error);
     }
   }
 
@@ -75,32 +111,75 @@ const LoginPopup = ({ isOpen, setIsOpen }) => {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -50, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg w-96 relative"
+              className="bg-white dark:bg-gray-900 p-8 rounded-xl shadow-xl w-full max-w-md relative"
             >
               <IoCloseOutline
                 className="absolute top-4 right-4 text-2xl cursor-pointer"
                 onClick={() => setIsOpen(false)}
               />
-              <h2 className="text-center text-xl font-bold mb-4 text-[#fecb02]">{isRegister ? "REGISTER" : "SIGN IN"}</h2>
-              <div className="flex justify-between mb-4 border-b pb-2 relative">
-                <span
-                  className={`font-semibold cursor-pointer flex-1 text-center ${!isRegister ? "text-[#fecb02]" : "text-gray-500"}`}
-                  onClick={() => setIsRegister(false)}
-                >
-                  LOGIN
-                </span>
-                <span
-                  className={`font-semibold cursor-pointer flex-1 text-center ${isRegister ? "text-[#fecb02]" : "text-gray-500"}`}
-                  onClick={() => setIsRegister(true)}
-                >
-                  REGISTER
-                </span>
-                <motion.div
-                  className="absolute bottom-0 h-[2px] bg-[#fecb02] transition-all"
-                  animate={{ left: isRegister ? "50%" : "0%", width: "50%" }}
-                />
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold mb-2">
+                  {isLogin ? "Login" : "Register"}
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {isLogin
+                    ? "Welcome back! Please login to your account."
+                    : "Create an account to continue."}
+                </p>
               </div>
-              {isRegister ? (
+
+              {isLoading ? (
+                <div className="min-h-[200px] flex items-center justify-center">
+                  <Loading />
+                </div>
+              ) : isLogin ? (
+                <Formik
+                  initialValues={{
+                    username: localStorage.getItem('savedCredentials') 
+                      ? JSON.parse(localStorage.getItem('savedCredentials')).username 
+                      : '',
+                    password: localStorage.getItem('savedCredentials')
+                      ? JSON.parse(localStorage.getItem('savedCredentials')).password
+                      : ''
+                  }}
+                  onSubmit={loginSubmit}
+                >
+                  <Form>
+                    <label className="block text-sm font-medium">Username *</label>
+                    <Field
+                      type="text"
+                      className="w-full border rounded p-2 mb-3"
+                      name="username"
+                    />
+                    <label className="block text-sm font-medium">Password *</label>
+                    <div className="relative">
+                      <Field
+                        type={showPassword ? "text" : "password"}
+                        className="w-full border rounded p-2 mb-3"
+                        name="password"
+                      />
+                      <span
+                        className="absolute right-3 top-3 cursor-pointer"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                      </span>
+                    </div>
+                    <div className="flex items-center mb-3">
+                      <input 
+                        type="checkbox" 
+                        className="mr-2"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                      />
+                      <span>Remember me</span>
+                    </div>
+                    <button type="submit" className="w-full bg-[#fecb02] text-white py-2 rounded mb-3">
+                      LOGIN
+                    </button>
+                  </Form>
+                </Formik>
+              ) : (
                 <Formik
                   initialValues={{
                     username: '',
@@ -108,10 +187,7 @@ const LoginPopup = ({ isOpen, setIsOpen }) => {
                     password: ''
                   }}
                   validationSchema={UserRegisterSchema}
-                  onSubmit={(values, { resetForm, setSubmitting }) => {
-                    submit(values);
-                    resetForm();
-                  }}
+                  onSubmit={registerSubmit}
                 >
                   <Form>
                     <label className="block text-sm font-medium">Username *</label>
@@ -149,66 +225,31 @@ const LoginPopup = ({ isOpen, setIsOpen }) => {
                     <ErrorMessage name="password">
                       {(msg) => <div className="mb-1 text-red-500 text-xs">{msg}</div>}
                     </ErrorMessage>
-                    <button className="w-full bg-[#fecb02] text-white py-2 rounded mb-3">
+                    <button type="submit" className="w-full bg-[#fecb02] text-white py-2 rounded mb-3">
                       REGISTER
                     </button>
                   </Form>
                 </Formik>
+              )}
 
-              ) : (
-                <Formik
-                  initialValues={{
-                    username: '',
-                    password: ''
-                  }}
-                  onSubmit={(values, { resetForm, setSubmitting }) => {
-                    loginSubmit(values);
-                    resetForm();
-                  }}
+              <div className="text-center mt-6">
+                <button
+                  type="button"
+                  className="text-blue-600 hover:underline dark:text-blue-400"
+                  onClick={() => setIsLogin(!isLogin)}
+                  disabled={isLoading}
                 >
-                  <Form>
-                    <label className="block text-sm font-medium">Username *</label>
-                    <Field
-                      type="text"
-                      className="w-full border rounded p-2 mb-3"
-                      name="username"
-                    />
-                    <label className="block text-sm font-medium">Password *</label>
-                    <div className="relative">
-                      <Field
-                        type={showPassword ? "text" : "password"}
-                        className="w-full border rounded p-2 mb-3"
-                        name="password"
-                      />
-                      <span
-                        className="absolute right-3 top-3 cursor-pointer"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
-                      </span>
-                    </div>
-                    <div className="flex items-center mb-3">
-                      <input type="checkbox" className="mr-2" />
-                      <span>Remember me</span>
-                    </div>
-                    <button className="w-full bg-[#fecb02] text-white py-2 rounded mb-3">
-                      LOGIN
-                    </button>
-                  </Form>
-                </Formik>
-              )}
-              {!isRegister && (
-                <p className="text-center mt-3 text-sm text-gray-500 cursor-pointer">
-                  Lost your password?
-                </p>
-              )}
+                  {isLogin
+                    ? "Don't have an account? Register"
+                    : "Already have an account? Login"}
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
     </>
-
   );
 };
 
-export default LoginPopup;
+export default AuthPopup;

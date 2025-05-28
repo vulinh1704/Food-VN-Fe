@@ -8,16 +8,17 @@ import Img2 from "../../../../assets/women/women2.jpg";
 import Img3 from "../../../../assets/women/women3.jpg";
 import Img4 from "../../../../assets/women/women4.jpg";
 import { getAllData } from "../../../../services/category-service/category-service";
+import Loading from "../../../Supporter/Loading";
 
 const ProductsData = [
-  { id: 1, img: Img1, title: "Thời Trang Nam" },
-  { id: 2, img: Img2, title: "Điện Thoại & Phụ Kiện" },
-  { id: 3, img: Img3, title: "Thiết Bị Điện Tử" },
-  { id: 4, img: Img4, title: "Máy Tính & Laptop" },
-  { id: 5, img: Img2, title: "Máy Ảnh & Máy Quay" },
-  { id: 6, img: Img1, title: "Đồng Hồ" },
-  { id: 7, img: Img3, title: "Giày Dép Nam" },
-  { id: 8, img: Img4, title: "Thiết Bị Gia Dụng" },
+  { id: 1, img: Img1, title: "Men's Fashion" },
+  { id: 2, img: Img2, title: "Phones & Accessories" },
+  { id: 3, img: Img3, title: "Electronics" },
+  { id: 4, img: Img4, title: "Computers & Laptops" },
+  { id: 5, img: Img2, title: "Cameras" },
+  { id: 6, img: Img1, title: "Watches" },
+  { id: 7, img: Img3, title: "Men's Shoes" },
+  { id: 8, img: Img4, title: "Home Appliances" },
 ];
 
 const Categories = () => {
@@ -26,9 +27,18 @@ const Categories = () => {
   const [isEnd, setIsEnd] = useState(false);
   const [isBeginning, setIsBeginning] = useState(true);
   const [categories, setCategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
   const getAllCategories = async () => {
-    const list = await getAllData();
-    setCategories(list);
+    try {
+      setIsLoading(true);
+      const list = await getAllData();
+      setCategories(list);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -43,21 +53,29 @@ const Categories = () => {
     getAllCategories();
   }, []);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-[200px] flex items-center justify-center">
+        <Loading size="large" />
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full max-w-8xl mt-20 mb-10 container relative">
-      <div className="text-center mb-[90px] w-full mx-auto bg-[#ffffff] border-b-2 border-[#fecb02] py-1">
-        <h1 data-aos="fade-up" className="text-2xl font-bold-900">
+    <div className="w-full">
+      <div className="text-center mb-10 w-full mx-auto border-b-2 border-[#fecb02] py-2">
+        <h1 data-aos="fade-up" className="text-3xl font-bold">
           CATEGORIES
         </h1>
-        <p data-aos="fade-up" className="text-sm text-[#fecb02] py-1">
-          Product categories list for you
+        <p data-aos="fade-up" className="text-sm text-[#fecb02] mt-2">
+          Explore our diverse product categories
         </p>
       </div>
 
-      <div data-aos="fade-up">
+      <div data-aos="fade-up" className="relative">
         <Swiper
           modules={[Navigation]}
-          spaceBetween={2}
+          spaceBetween={20}
           breakpoints={{
             500: { slidesPerView: 2 },
             768: { slidesPerView: 3 },
@@ -68,25 +86,25 @@ const Categories = () => {
             prevEl: isMounted ? ".custom-prev" : null,
             nextEl: isMounted ? ".custom-next" : null,
           }}
-          className="!pb-10"
+          className="!pb-10 !px-2"
         >
           {categories.map((item) => (
-            <SwiperSlide key={item.id} className="flex flex-col items-center transition-transform duration-300 hover:scale-110">
-              <div className="w-[180px] h-[180px] flex items-center justify-center bg-white shadow-lg rounded-lg p-1 transition-transform duration-300 hover:border-2 border-[#f2eddc]">
-                <img src={item.image} alt={item.name} className="max-w-[170px] max-h-[170px] object-contain" />
+            <SwiperSlide key={item.id} className="flex flex-col items-center transition-transform duration-300 hover:scale-105">
+              <div className="w-[160px] h-[160px] flex items-center justify-center bg-white shadow-md rounded-lg p-2 border border-gray-100 hover:border-[#fecb02] transition-all duration-300">
+                <img src={item.image} alt={item.name} className="max-w-[140px] max-h-[140px] object-contain" />
               </div>
-              <h3 className="text-sm font-semibold-900 mt-2 text-center">{item.title}</h3>
+              <h3 className="text-sm font-medium mt-3 text-center">{item.title}</h3>
             </SwiperSlide>
           ))}
         </Swiper>
 
         <button
-          className={`custom-prev absolute left-[-20px] top-1/2 transform -translate-y-1/2 p-3 rounded-full text-2xl hover:scale-110 transition ${isBeginning ? 'text-[#f2eddc]' : 'text-[#fecb02] hover:text-3xl'}`}
+          className={`custom-prev absolute left-0 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-white shadow-md text-xl hover:scale-110 transition-all ${isBeginning ? 'text-gray-300 cursor-not-allowed' : 'text-[#fecb02] hover:bg-[#fecb02] hover:text-white'}`}
         >
           ❮
         </button>
         <button
-          className={`custom-next absolute right-[-20px] top-1/2 transform -translate-y-1/2 p-3 rounded-full text-2xl hover:scale-110 transition ${isEnd ? 'text-[#f2eddc]' : 'text-[#fecb02] hover:text-3xl'}`}
+          className={`custom-next absolute right-0 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-white shadow-md text-xl hover:scale-110 transition-all ${isEnd ? 'text-gray-300 cursor-not-allowed' : 'text-[#fecb02] hover:bg-[#fecb02] hover:text-white'}`}
         >
           ❯
         </button>

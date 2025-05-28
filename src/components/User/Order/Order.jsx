@@ -4,7 +4,7 @@ import { CiTrash } from "react-icons/ci";
 import { useNavbar } from '../../../providers/users/NavBarProvider';
 import { ACTIVE_VALUE_NAVBAR } from '../../../lib/app-const';
 import { useOrder } from '../../../providers/users/OrderProvider';
-import { getAllByOrderId, getCard, getListOrders, submitOrder } from '../../../services/order-service/order-service';
+import { getAllByOrderId, getCard, getListOrders, submitOrder, updateStatusOrder, addOrderDetail, removeOrderDetailByOrderIdAndProductId } from '../../../services/order-service/order-service';
 import { formatNumberWithDots, parseToVietnamTime } from '../../../lib/format-hepper';
 import { getAllAddress } from '../../../services/auth-service/auth-service';
 import { FaCheck, FaChevronDown, FaRegMap } from "react-icons/fa";
@@ -109,8 +109,12 @@ const Order = () => {
 
     const getListOds = async () => {
         let data = await getListOrders();
-        console.log(data);
         setOrders(data);
+    }
+
+    const cancelOrder = async (id) => {
+        await updateStatusOrder({ id, status: 0 });
+        await getListOds();
     }
 
     const getUserCard = async () => {
@@ -162,6 +166,46 @@ const Order = () => {
         }
         await submitOrder(orders);
         await getUserCard();
+    }
+
+    const deleteOrderDetail = async (orderId, productId) => {
+        await removeOrderDetailByOrderIdAndProductId(orderId, productId);
+        await getAll();
+    }
+
+    const saveOrderDetail = async (item) => {
+        let data = {
+            orders: {
+                id: item.orderId
+            },
+            product: {
+                id: item.productId
+            },
+            price: item.price,
+            quantity: 1
+        }
+        await addOrderDetail(data);
+        await getAll();
+    }
+
+    const clearCart = async () => {
+        try {
+            // Xóa từng sản phẩm trong giỏ hàng
+            const deletePromises = list.map(item => 
+                removeOrderDetailByOrderIdAndProductId(item.orderId, item.productId)
+            );
+            await Promise.all(deletePromises);
+            
+            // Cập nhật lại giỏ hàng
+            setList([]);
+            setTotal(0);
+            setIsDisablePay(true);
+            
+            // Cập nhật lại card
+            await getUserCard();
+        } catch (error) {
+            console.error("Error clearing cart:", error);
+        }
     }
 
     useEffect(() => {
@@ -216,12 +260,21 @@ const Order = () => {
                                             </div>
                                         </div>
                                         <div className="text-center text-gray-700">{item.price.toLocaleString()} đ</div>
-                                        <div className="text-center">{item.quantity}</div>
+                                        <div className="text-center flex items-center justify-center gap-2">
+                                            <button className="border px-2 py-1 rounded hover:text-[#fecb02]" onClick={() => deleteOrderDetail(item.orderId, item.productId)}>-</button>
+                                            <span>{item.quantity}</span>
+                                            <button className="border px-2 py-1 rounded hover:text-[#fecb02]" onClick={() => saveOrderDetail(item)}>+</button>
+                                        </div>
                                         <div className="text-right font-semibold">{item.total.toLocaleString()} đ</div>
                                     </div>
                                 ))}
                                 {
-                                    list.length != 0 && <div className="text-sm mt-4 text-gray-500 underline cursor-pointer hover:text-red-500 flex gap-1"><CiTrash className="text-xl" /> CLEAR CART</div>
+                                    list.length != 0 && <div 
+                                        className="text-sm mt-4 text-gray-500 underline cursor-pointer hover:text-red-500 flex gap-1 items-center" 
+                                        onClick={clearCart}
+                                    >
+                                        <CiTrash className="text-xl" /> CLEAR CART
+                                    </div>
                                 }
                             </div>
 
@@ -336,7 +389,7 @@ const Order = () => {
                                     </div>
 
                                     <div className="mt-4 text-right">
-                                       <div className="text-sm mt-4 text-red-500 underline cursor-pointer hover:text-red-600 flex gap-1"><TbBasketCancel className="text-xl" /> Cancel order</div>
+                                        <div className="text-sm mt-4 text-red-500 underline cursor-pointer hover:text-red-600 flex gap-1" onClick={() => { cancelOrder(item.id) }}><TbBasketCancel className="text-xl" /> Cancel order</div>
                                     </div>
                                 </div>
                             );

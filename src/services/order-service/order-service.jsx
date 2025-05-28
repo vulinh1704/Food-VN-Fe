@@ -29,3 +29,8 @@ export const submitOrder = async (_params) => {
     let { data } = await axiosClient.post("/orders/buy", _params);
     return data;
 }
+
+export const updateStatusOrder = async (_params) => {
+    let { data } = await axiosClient.put("/orders/update-status", _params);
+    return data;
+}

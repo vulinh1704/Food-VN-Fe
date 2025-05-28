@@ -1,0 +1,21 @@
+import axiosClient from "../../lib/axios-client";
+
+export const saveEvaluation = async (data) => {
+  try {
+    const response = await axiosClient.post(`/evaluations/save`, data);
+    return response.data;
+  } catch (error) {
+    console.error("Error saving evaluation:", error);
+    throw error;
+  }
+};
+
+export const getProductEvaluations = async (productId) => {
+  try {
+    const response = await axiosClient.get(`/evaluations/product/${productId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Error getting product evaluations:", error);
+    throw error;
+  }
+}; 

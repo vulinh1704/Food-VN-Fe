@@ -6,7 +6,7 @@ export const NavBarProvider = ({ children }) => {
 
   const value = {
     active,
-    setActive,
+    setActive
   };
 
   return (

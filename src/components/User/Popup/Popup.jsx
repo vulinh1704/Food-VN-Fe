@@ -4,13 +4,14 @@ import { formatVND } from "../../../lib/format-hepper";
 import { useEffect, useState } from "react";
 import { addOrderDetail, getAllByOrderId, removeOrderDetailByOrderIdAndProductId } from "../../../services/order-service/order-service";
 import { useOrder } from "../../../providers/users/OrderProvider";
-
+import { useNavigate } from "react-router-dom";
 
 const Popup = ({ orderPopup, setOrderPopup }) => {
   const [list, setList] = useState([]);
   const { card } = useOrder();
   const [total, setTotal] = useState(0);
   const { setTotalDetail } = useOrder();
+  const navigate = useNavigate();
 
   const deleteOrderDetail = async (od) => {
     await removeOrderDetailByOrderIdAndProductId(od.orderId, od.productId);
@@ -130,7 +131,10 @@ const Popup = ({ orderPopup, setOrderPopup }) => {
                   <span className="font-semibold">SUBTOTAL:</span>
                   <span className="font-semibold">{formatVND(total)}</span>
                 </div>
-                <button className="w-full  bg-[#fecb02] text-white py-2 rounded">
+                <button className="w-full cursor-pointer bg-[#fecb02] text-white py-2 rounded" onClick={() => {
+                  setOrderPopup(false);
+                  navigate("/orders")
+                }}>
                   PAY NOW
                 </button>
               </div>
