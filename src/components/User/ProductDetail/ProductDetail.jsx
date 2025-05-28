@@ -9,7 +9,7 @@ import 'slick-carousel/slick/slick-theme.css';
 import { useNavbar } from "../../../providers/users/NavBarProvider";
 import { ACTIVE_VALUE_NAVBAR } from "../../../lib/app-const";
 import { useParams, useNavigate } from "react-router-dom";
-import { getOneById } from "../../../services/product-service/product-service";
+import { getOneById, get20ByCategoryOrNewest } from "../../../services/product-service/product-service";
 import { getProductEvaluations } from "../../../services/evaluation-service/evaluation-service";
 import { addOrderDetail } from "../../../services/order-service/order-service";
 import EvaluationForm from "./EvaluationForm";
@@ -73,6 +73,11 @@ const CustomNextArrow = (props) => {
 };
 const ImageGallery = ({ product }) => {
   const [mainImage, setMainImage] = useState(JSON.parse(product.images)[0]);
+
+  // Reset mainImage when product changes
+  useEffect(() => {
+    setMainImage(JSON.parse(product.images)[0]);
+  }, [product]);
 
   const settings = {
     dots: false,
@@ -168,10 +173,17 @@ const ProductDetail = () => {
   const { showNotification, NotificationPortal } = useNotificationPortal();
   const { card } = useOrder();
   const { user, setAuthPopup, setOrderPopup } = useUser();
+  const [relatedProducts, setRelatedProducts] = useState([]);
 
   const getOne = async () => {
     let data = await getOneById(id);
     setProduct(data);
+    // Fetch related products after getting product details
+    if (data?.category?.id) {
+      const relatedData = await get20ByCategoryOrNewest({ categoryId: data.category.id });
+      // Filter out the current product from related products
+      setRelatedProducts(relatedData.filter(p => p.id !== data.id).slice(0, 6));
+    }
   }
 
   const fetchEvaluations = async () => {
@@ -188,8 +200,10 @@ const ProductDetail = () => {
     if (id) {
       getOne();
       fetchEvaluations();
+      // Reset quantity when changing product
+      setQuantity(1);
     }
-  }, [id]);
+  }, [id]); // Add id as dependency to rerender when it changes
 
   const handleEvaluationSubmitted = () => {
     fetchEvaluations();
@@ -431,14 +445,42 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
-      {/* Sidebar */}
+      {/* Sidebar - Related Products */}
       <div className="col-span-12 lg:col-span-4 mt-6 space-y-4">
-        {[...Array(6)].map((_, idx) => (
-          <div key={idx} className="border rounded p-3 bg-white flex items-center space-x-3">
-            <div className="w-16 h-16 bg-gray-100 rounded" />
-            <div>
-              <h3 className="text-sm font-semibold">Sản phẩm liên quan {idx + 1}</h3>
-              <p className="text-red-500 text-sm font-bold">₫1.000.000</p>
+        <h3 className="text-lg font-semibold mb-4">Related Products</h3>
+        {relatedProducts.map((item) => (
+          <div 
+            key={item.id} 
+            className="border rounded p-3 bg-white flex items-center space-x-3 cursor-pointer hover:border-[#fecb02] transition-all duration-300"
+            onClick={() => navigate(`/detail/${item.id}`)}
+          >
+            <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center overflow-hidden">
+              <img src={JSON.parse(item.images)[0]} alt={item.name} className="w-full h-full object-cover" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold line-clamp-2">{item.name}</h3>
+              <div>
+                {item.coupons && item.coupons.length > 0 ? (
+                  <>
+                    <p className="text-gray-400 line-through text-xs">{formatNumberWithDots(item.price)} VNĐ</p>
+                    <p className="text-red-600 text-sm font-bold">
+                      {formatNumberWithDots(
+                        Math.max(
+                          item.coupons.reduce((price, coupon) => {
+                            if (coupon.type === "percent") {
+                              return price - (price * coupon.discount / 100);
+                            }
+                            return price - coupon.discount;
+                          }, item.price),
+                          1000
+                        )
+                      )} VNĐ
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-red-600 text-sm font-bold">{formatNumberWithDots(item.price)} VNĐ</p>
+                )}
+              </div>
             </div>
           </div>
         ))}

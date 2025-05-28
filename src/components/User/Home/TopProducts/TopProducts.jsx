@@ -3,7 +3,7 @@ import { FaExclamationCircle } from "react-icons/fa";
 import { formatNumberWithDots, formatVND } from "../../../../lib/format-hepper";
 import StarRating from "../../../Supporter/StarRating";
 import { Link } from "react-router-dom";
-import { getList } from "../../../../services/product-service/product-service";
+import { getList, getTopSelling } from "../../../../services/product-service/product-service";
 import { useOrder } from "../../../../providers/users/OrderProvider";
 import { useUser } from "../../../../providers/users/UserProvider";
 import { addOrderDetail } from "../../../../services/order-service/order-service";
@@ -17,7 +17,8 @@ const TopProducts = () => {
     const params = {
       size: 12
     };
-    const data = await getList(params);
+    const data = await getTopSelling(params);
+    console.log(data);
     setProducts(data.content);
   }
 

@@ -18,4 +18,14 @@ export const getProductEvaluations = async (productId) => {
     console.error("Error getting product evaluations:", error);
     throw error;
   }
+};
+
+export const getLatestEvaluations = async (params) => {
+  try {
+    const response = await axiosClient.get(`/evaluations/latest`, { params });
+    return response.data;
+  } catch (error) {
+    console.error("Error getting latest evaluations:", error);
+    throw error;
+  }
 }; 

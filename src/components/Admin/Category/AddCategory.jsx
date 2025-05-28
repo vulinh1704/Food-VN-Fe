@@ -13,6 +13,8 @@ import { ErrorMessage, Field, Form, Formik } from "formik";
 import { addCategory } from "../../../services/category-service/category-service";
 import { useNotificationPortal } from "../../Supporter/NotificationPortal";
 import { NotificationType } from "../../Supporter/Notification";
+import { FaSpinner } from "react-icons/fa";
+
 const CategorySchema = Yup.object().shape({
     name: Yup.string()
         .min(2, 'Too Short!')
@@ -24,14 +26,24 @@ const AddCategory = ({ isOpenAddCategoryPopup, setIsOpenAddCategoryPopup }) => {
     const { showNotification, NotificationPortal } = useNotificationPortal();
     const [imageUrl, setImageUrl] = useState("");
     const [imageError, setImageError] = useState("");
+    const [isUploading, setIsUploading] = useState(false);
     
     const uploadFile = (file) => {
         if (file == null) return;
+        setIsUploading(true);
         const imageRef = ref(storage, `images/${file.name + v4()}`);
         uploadBytes(imageRef, file).then((snapshot) => {
             getDownloadURL(snapshot.ref).then((url) => {
                 setImageUrl(url);
+                showNotification(NotificationType.SUCCESS, "Image uploaded successfully");
+                setIsUploading(false);
+            }).catch((error) => {
+                showNotification(NotificationType.ERROR, "Error uploading image");
+                setIsUploading(false);
             });
+        }).catch((error) => {
+            showNotification(NotificationType.ERROR, "Error uploading image");
+            setIsUploading(false);
         });
     };
 
@@ -39,10 +51,16 @@ const AddCategory = ({ isOpenAddCategoryPopup, setIsOpenAddCategoryPopup }) => {
         setImageUrl("");
     }
 
-    const add = async (values) => {
-        await addCategory(values);
-        showNotification(NotificationType.SUCCESS, "Add category success.");
-        setIsOpenAddCategoryPopup(false);
+    const add = async (values, { setSubmitting }) => {
+        try {
+            await addCategory(values);
+            showNotification(NotificationType.SUCCESS, "Add category success.");
+            setIsOpenAddCategoryPopup(false);
+        } catch (error) {
+            showNotification(NotificationType.ERROR, error.response?.data?.message || "Error adding category");
+        } finally {
+            setSubmitting(false);
+        }
     }
 
     return (
@@ -53,19 +71,20 @@ const AddCategory = ({ isOpenAddCategoryPopup, setIsOpenAddCategoryPopup }) => {
                     name: ''
                 }}
                 validationSchema={CategorySchema}
-                onSubmit={(values, { resetForm, setSubmitting }) => {
+                onSubmit={(values, formikBag) => {
                     if (!imageUrl) {
                         setImageError("Image is required!");
+                        formikBag.setSubmitting(false);
                         return;
                     }
                     const data = { ...values, image: imageUrl };
-                    add(data);
+                    add(data, formikBag);
                     setImageUrl("");
                     setImageError("");
-                    resetForm();
+                    formikBag.resetForm();
                 }}
             >
-
+                {({ isSubmitting }) => (
                 <AnimatePresence>
                     {isOpenAddCategoryPopup && (
                         <motion.div
@@ -100,15 +119,23 @@ const AddCategory = ({ isOpenAddCategoryPopup, setIsOpenAddCategoryPopup }) => {
                                             </ErrorMessage>
                                         </div>
                                         <div>
-                                            <input
-                                                className=" m-0 block w-full min-w-0 flex-auto rounded border border-solid border-neutral-300 bg-clip-padding px-3 py-[0.32rem] text-base font-normal text-neutral-700 transition duration-300 ease-in-out file:-mx-3 file:-my-[0.32rem] file:overflow-hidden file:rounded-none file:border-0 file:border-solid file:border-inherit file:bg-neutral-100 file:px-3 file:py-[0.32rem] file:text-neutral-700 file:transition file:duration-150 file:ease-in-out file:[border-inline-end-width:1px] file:[margin-inline-end:0.75rem] hover:file:bg-neutral-200 focus:border-primary focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:file:bg-neutral-700 dark:file:text-neutral-100 dark:focus:border-primary"
-                                                type="file"
-                                                id="formFileMultiple"
-                                                multiple
-                                                onChange={(event) => {
-                                                    uploadFile(event.target.files[0]);
-                                                }}
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    className="m-0 block w-full min-w-0 flex-auto rounded border border-solid border-neutral-300 bg-clip-padding px-3 py-[0.32rem] text-base font-normal text-neutral-700 transition duration-300 ease-in-out file:-mx-3 file:-my-[0.32rem] file:overflow-hidden file:rounded-none file:border-0 file:border-solid file:border-inherit file:bg-neutral-100 file:px-3 file:py-[0.32rem] file:text-neutral-700 file:transition file:duration-150 file:ease-in-out file:[border-inline-end-width:1px] file:[margin-inline-end:0.75rem] hover:file:bg-neutral-200 focus:border-primary focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:file:bg-neutral-700 dark:file:text-neutral-100 dark:focus:border-primary"
+                                                    type="file"
+                                                    id="formFile"
+                                                    accept="image/*"
+                                                    onChange={(event) => {
+                                                        uploadFile(event.target.files[0]);
+                                                    }}
+                                                    disabled={isUploading}
+                                                />
+                                                {isUploading && (
+                                                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                                                        <FaSpinner className="animate-spin text-[#fecb02] text-xl" />
+                                                    </div>
+                                                )}
+                                            </div>
                                             <div className="mt-1 text-red-500 text-md">{imageError}</div>
                                         </div>
                                     </div>
@@ -121,6 +148,7 @@ const AddCategory = ({ isOpenAddCategoryPopup, setIsOpenAddCategoryPopup }) => {
                                                     className="w-full h-full object-cover rounded-lg"
                                                 />
                                                 <button
+                                                    type="button"
                                                     onClick={() => handleRemoveImage()}
                                                     className="absolute top-1 right-1 bg-black bg-opacity-60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
                                                 >
@@ -130,18 +158,22 @@ const AddCategory = ({ isOpenAddCategoryPopup, setIsOpenAddCategoryPopup }) => {
                                         }
                                     </div>
                                     {/* Submit */}
-                                    <button className="w-full bg-[#fecb02] text-white py-2 rounded hover:opacity-90">
-                                        Submit
+                                    <button 
+                                        type="submit"
+                                        disabled={isSubmitting || isUploading}
+                                        className={`w-full bg-[#fecb02] text-white py-2 rounded hover:opacity-90 flex items-center justify-center gap-2 ${(isSubmitting || isUploading) ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                    >
+                                        {isSubmitting && <FaSpinner className="animate-spin" />}
+                                        {isSubmitting ? 'Đang xử lý...' : 'Submit'}
                                     </button>
                                 </Form>
                             </motion.div>
                         </motion.div>
-
                     )}
                 </AnimatePresence>
-            </Formik >
+                )}
+            </Formik>
         </>
-
     );
 };
 

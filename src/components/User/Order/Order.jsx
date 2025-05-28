@@ -190,18 +190,13 @@ const Order = () => {
 
     const clearCart = async () => {
         try {
-            // Xóa từng sản phẩm trong giỏ hàng
             const deletePromises = list.map(item => 
                 removeOrderDetailByOrderIdAndProductId(item.orderId, item.productId)
             );
             await Promise.all(deletePromises);
-            
-            // Cập nhật lại giỏ hàng
             setList([]);
             setTotal(0);
             setIsDisablePay(true);
-            
-            // Cập nhật lại card
             await getUserCard();
         } catch (error) {
             console.error("Error clearing cart:", error);

@@ -18,6 +18,7 @@ import "react-quill/dist/quill.snow.css";
 import { getOneById, saveProduct } from "../../../services/product-service/product-service";
 import { useNotificationPortal } from "../../Supporter/NotificationPortal";
 import { NotificationType } from "../../Supporter/Notification";
+import { FaSpinner } from "react-icons/fa";
 
 const ProductSchema = Yup.object().shape({
     name: Yup.string()
@@ -96,9 +97,11 @@ function DescriptionEditor({ value, onChange }) {
 
 const EditProduct = ({ isOpenEditProductPopup, setIsOpenEditProductPopup, idEdit }) => {
     const [imageUrls, setImageUrls] = useState([]);
+    const [isUploading, setIsUploading] = useState(false);
     const { showNotification, NotificationPortal } = useNotificationPortal();
     const [product, setProduct] = useState(null);
     const [newProduct, setNewProduct] = useState({});
+
     const getOne = async () => {
         let data = await getOneById(idEdit);
         setProduct(data);
@@ -111,20 +114,32 @@ const EditProduct = ({ isOpenEditProductPopup, setIsOpenEditProductPopup, idEdit
         if (idEdit) getOne();
     }, [idEdit]);
 
-    const uploadFile = (file) => {
-        if (file == null) return;
-        const imageRef = ref(storage, `images/${file.name + v4()}`);
-        uploadBytes(imageRef, file).then((snapshot) => {
-            getDownloadURL(snapshot.ref).then((url) => {
-                setImageUrls((prev) => [...prev, url]);
+    const uploadFiles = async (files) => {
+        if (!files || files.length === 0) return;
+        setIsUploading(true);
+        try {
+            const uploadPromises = Array.from(files).map(async (file) => {
+                const imageRef = ref(storage, `images/${file.name + v4()}`);
+                const snapshot = await uploadBytes(imageRef, file);
+                const url = await getDownloadURL(snapshot.ref);
+                return url;
             });
-        });
+
+            const urls = await Promise.all(uploadPromises);
+            setImageUrls(prev => [...prev, ...urls]);
+            showNotification(NotificationType.SUCCESS, "Images uploaded successfully");
+        } catch (error) {
+            showNotification(NotificationType.ERROR, "Failed to upload images");
+            console.error("Upload failed", error);
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     const save = async (values) => {
         try {
             await saveProduct(values);
-            showNotification(NotificationType.SUCCESS, "Add food success.");
+            showNotification(NotificationType.SUCCESS, "Edit food success.");
             setIsOpenEditProductPopup(false);
         } catch (e) {
             showNotification(NotificationType.ERROR, e.response.data.message);
@@ -133,7 +148,6 @@ const EditProduct = ({ isOpenEditProductPopup, setIsOpenEditProductPopup, idEdit
 
     const handleRemoveImage = (index) => {
         const newImages = imageUrls.filter((_, i) => i !== index);
-        console.log(newImages);
         setImageUrls(newImages);
     }
 
@@ -152,7 +166,6 @@ const EditProduct = ({ isOpenEditProductPopup, setIsOpenEditProductPopup, idEdit
                         }}>
                         <Form>
                             <AnimatePresence>
-
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
@@ -198,32 +211,37 @@ const EditProduct = ({ isOpenEditProductPopup, setIsOpenEditProductPopup, idEdit
                                                     {(msg) => <div className="mt-1 text-red-500 text-xs">{msg}</div>}
                                                 </ErrorMessage>
                                             </div>
-                                            <div className="col-span-1">
+                                            <div className="col-span-1 relative">
                                                 <input
                                                     className="relative m-0 block w-full min-w-0 flex-auto rounded border border-solid border-neutral-300 bg-clip-padding px-3 py-[0.32rem] text-base font-normal text-neutral-700 transition duration-300 ease-in-out file:-mx-3 file:-my-[0.32rem] file:overflow-hidden file:rounded-none file:border-0 file:border-solid file:border-inherit file:bg-neutral-100 file:px-3 file:py-[0.32rem] file:text-neutral-700 file:transition file:duration-150 file:ease-in-out file:[border-inline-end-width:1px] file:[margin-inline-end:0.75rem] hover:file:bg-neutral-200 focus:border-primary focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:file:bg-neutral-700 dark:file:text-neutral-100 dark:focus:border-primary"
                                                     type="file"
                                                     id="formFileMultiple"
                                                     multiple
-                                                    onChange={(event) => {
-                                                        uploadFile(event.target.files[0]);
-                                                    }}
+                                                    onChange={(e) => uploadFiles(e.target.files)}
+                                                    disabled={isUploading}
                                                 />
+                                                {isUploading && (
+                                                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                                        <FaSpinner className="animate-spin text-[#fecb02] text-xl" />
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        <div className="grid md:grid-cols-6 gap-4 mb-3">
-                                            {imageUrls.map((img, index) => (
-                                                <div key={index} className="relative w-full aspect-square">
+                                        <div className="grid grid-cols-4 gap-4 mb-4">
+                                            {imageUrls.map((url, index) => (
+                                                <div key={index} className="relative group">
                                                     <img
-                                                        src={img}
-                                                        alt={`Uploaded ${index}`}
-                                                        className="w-full h-full object-cover rounded-lg"
+                                                        src={url}
+                                                        alt={`Preview ${index + 1}`}
+                                                        className="w-full h-24 object-cover rounded-lg"
                                                     />
-                                                    <div
+                                                    <button
+                                                        type="button"
                                                         onClick={() => handleRemoveImage(index)}
-                                                        className="absolute top-1 right-1 bg-black bg-opacity-60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                                                     >
-                                                        ✕
-                                                    </div>
+                                                        <IoCloseOutline className="text-sm" />
+                                                    </button>
                                                 </div>
                                             ))}
                                         </div>
@@ -265,8 +283,6 @@ const EditProduct = ({ isOpenEditProductPopup, setIsOpenEditProductPopup, idEdit
                 </>
             )}
         </>
-
-
     );
 };
 

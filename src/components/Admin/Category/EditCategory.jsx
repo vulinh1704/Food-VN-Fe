@@ -13,6 +13,8 @@ import { ErrorMessage, Field, Form, Formik } from "formik";
 import { addCategory, getOneCategory } from "../../../services/category-service/category-service";
 import { useNotificationPortal } from "../../Supporter/NotificationPortal";
 import { NotificationType } from "../../Supporter/Notification";
+import { FaSpinner } from "react-icons/fa";
+
 const CategorySchema = Yup.object().shape({
     name: Yup.string()
         .min(2, 'Too Short!')
@@ -25,14 +27,25 @@ const EditCategory = ({ isOpenEditCategoryPopup, setIsOpenEditCategoryPopup, idE
     const [imageUrl, setImageUrl] = useState("");
     const [imageError, setImageError] = useState("");
     const [category, setCategory] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const uploadFile = (file) => {
         if (file == null) return;
+        setIsUploading(true);
         const imageRef = ref(storage, `images/${file.name + v4()}`);
         uploadBytes(imageRef, file).then((snapshot) => {
             getDownloadURL(snapshot.ref).then((url) => {
                 setImageUrl(url);
+                showNotification(NotificationType.SUCCESS, "Image uploaded successfully");
+                setIsUploading(false);
+            }).catch((error) => {
+                showNotification(NotificationType.ERROR, "Error uploading image");
+                setIsUploading(false);
             });
+        }).catch((error) => {
+            showNotification(NotificationType.ERROR, "Error uploading image");
+            setIsUploading(false);
         });
     };
 
@@ -40,20 +53,28 @@ const EditCategory = ({ isOpenEditCategoryPopup, setIsOpenEditCategoryPopup, idE
         setImageUrl("");
     }
 
-    const edit = async (values) => {
-        await addCategory(values);
-        showNotification(NotificationType.SUCCESS, "Edit category success.");
-        setIsOpenEditCategoryPopup(false);
+    const edit = async (values, { setSubmitting }) => {
+        try {
+            await addCategory(values);
+            showNotification(NotificationType.SUCCESS, "Edit category success.");
+            setIsOpenEditCategoryPopup(false);
+        } catch (error) {
+            showNotification(NotificationType.ERROR, error.response?.data?.message || "Error editing category");
+        } finally {
+            setSubmitting(false);
+        }
     }
 
     const findById = async () => {
         try {
+            setIsLoading(true);
             const data = await getOneCategory(idEdit);
             setCategory(data);
-            console.log("image", imageUrl)
             setImageUrl(data.image);
         } catch (e) {
             showNotification(NotificationType.ERROR, e.response.data.message);
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -68,19 +89,20 @@ const EditCategory = ({ isOpenEditCategoryPopup, setIsOpenEditCategoryPopup, idE
                 initialValues={category}
                 validationSchema={CategorySchema}
                 enableReinitialize
-                onSubmit={(values, { resetForm }) => {
+                onSubmit={(values, formikBag) => {
                     if (!imageUrl) {
                         setImageError("Image is required!");
+                        formikBag.setSubmitting(false);
                         return;
                     }
                     const data = { ...values, image: imageUrl };
-                    edit(data);
+                    edit(data, formikBag);
                     setImageUrl("");
                     setImageError("");
-                    resetForm();
+                    formikBag.resetForm();
                 }}
             >
-
+                {({ isSubmitting }) => (
                 <AnimatePresence>
                     {isOpenEditCategoryPopup && (
                         <motion.div
@@ -100,6 +122,11 @@ const EditCategory = ({ isOpenEditCategoryPopup, setIsOpenEditCategoryPopup, idE
                                     className="absolute top-4 right-4 text-2xl cursor-pointer text-gray-600 hover:text-red-500"
                                     onClick={() => setIsOpenEditCategoryPopup(false)}
                                 />
+                                {isLoading ? (
+                                    <div className="flex items-center justify-center h-40">
+                                        <FaSpinner className="animate-spin text-[#fecb02] text-3xl" />
+                                    </div>
+                                ) : (
                                 <Form>
                                     <h2 className="text-2xl font-semibold text-[#fecb02] text-600 mb-6">Edit Category</h2>
                                     <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -115,15 +142,23 @@ const EditCategory = ({ isOpenEditCategoryPopup, setIsOpenEditCategoryPopup, idE
                                             </ErrorMessage>
                                         </div>
                                         <div>
-                                            <input
-                                                className=" m-0 block w-full min-w-0 flex-auto rounded border border-solid border-neutral-300 bg-clip-padding px-3 py-[0.32rem] text-base font-normal text-neutral-700 transition duration-300 ease-in-out file:-mx-3 file:-my-[0.32rem] file:overflow-hidden file:rounded-none file:border-0 file:border-solid file:border-inherit file:bg-neutral-100 file:px-3 file:py-[0.32rem] file:text-neutral-700 file:transition file:duration-150 file:ease-in-out file:[border-inline-end-width:1px] file:[margin-inline-end:0.75rem] hover:file:bg-neutral-200 focus:border-primary focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:file:bg-neutral-700 dark:file:text-neutral-100 dark:focus:border-primary"
-                                                type="file"
-                                                id="formFileMultiple"
-                                                multiple
-                                                onChange={(event) => {
-                                                    uploadFile(event.target.files[0]);
-                                                }}
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    className="m-0 block w-full min-w-0 flex-auto rounded border border-solid border-neutral-300 bg-clip-padding px-3 py-[0.32rem] text-base font-normal text-neutral-700 transition duration-300 ease-in-out file:-mx-3 file:-my-[0.32rem] file:overflow-hidden file:rounded-none file:border-0 file:border-solid file:border-inherit file:bg-neutral-100 file:px-3 file:py-[0.32rem] file:text-neutral-700 file:transition file:duration-150 file:ease-in-out file:[border-inline-end-width:1px] file:[margin-inline-end:0.75rem] hover:file:bg-neutral-200 focus:border-primary focus:text-neutral-700 focus:shadow-te-primary focus:outline-none dark:border-neutral-600 dark:text-neutral-200 dark:file:bg-neutral-700 dark:file:text-neutral-100 dark:focus:border-primary"
+                                                    type="file"
+                                                    id="formFile"
+                                                    accept="image/*"
+                                                    onChange={(event) => {
+                                                        uploadFile(event.target.files[0]);
+                                                    }}
+                                                    disabled={isUploading}
+                                                />
+                                                {isUploading && (
+                                                    <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                                                        <FaSpinner className="animate-spin text-[#fecb02] text-xl" />
+                                                    </div>
+                                                )}
+                                            </div>
                                             <div className="mt-1 text-red-500 text-md">{imageError}</div>
                                         </div>
                                     </div>
@@ -136,6 +171,7 @@ const EditCategory = ({ isOpenEditCategoryPopup, setIsOpenEditCategoryPopup, idE
                                                     className="w-full h-full object-cover rounded-lg"
                                                 />
                                                 <button
+                                                    type="button"
                                                     onClick={() => handleRemoveImage()}
                                                     className="absolute top-1 right-1 bg-black bg-opacity-60 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
                                                 >
@@ -145,18 +181,23 @@ const EditCategory = ({ isOpenEditCategoryPopup, setIsOpenEditCategoryPopup, idE
                                         }
                                     </div>
                                     {/* Submit */}
-                                    <button className="w-full bg-[#fecb02] text-white py-2 rounded hover:opacity-90">
-                                        Submit
+                                    <button 
+                                        type="submit"
+                                        disabled={isSubmitting || isUploading}
+                                        className={`w-full bg-[#fecb02] text-white py-2 rounded hover:opacity-90 flex items-center justify-center gap-2 ${(isSubmitting || isUploading) ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                    >
+                                        {isSubmitting && <FaSpinner className="animate-spin" />}
+                                        {isSubmitting ? 'Đang xử lý...' : 'Submit'}
                                     </button>
                                 </Form>
+                                )}
                             </motion.div>
                         </motion.div>
-
                     )}
                 </AnimatePresence>
-            </Formik >
+                )}
+            </Formik>
         </>
-
     );
 };
 
