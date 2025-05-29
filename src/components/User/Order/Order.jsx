@@ -166,6 +166,7 @@ const Order = () => {
         }
         await submitOrder(orders);
         await getUserCard();
+        setCurrentStep(2);
     }
 
     const deleteOrderDetail = async (orderId, productId) => {

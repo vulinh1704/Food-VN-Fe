@@ -330,7 +330,7 @@ const ProductDetail = () => {
         quantity: quantity
       }
       await addOrderDetail(data);
-      navigate("/order");
+      navigate("/orders");
     } catch (error) {
       showNotification(NotificationType.ERROR, "Failed to process order");
     }

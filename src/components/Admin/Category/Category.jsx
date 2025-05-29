@@ -151,7 +151,7 @@ export const Category = () => {
                             {
                                 categories.map(item => (
                                     <tr class="border-b hover:bg-gray-50" key={item.id}>
-                                        <td class="px-6 py-4 font-medium text-gray-900">{parseToVietnamTime(item.createdAt)}</td>
+                                        <td class="px-6 py-4 text-gray-900">{parseToVietnamTime(item.createdAt)}</td>
                                         <td class="px-6 py-4 font-medium text-gray-900">{item.name}</td>
                                         <td class="px-6 py-4">
                                             <img src={item.image} className="w-[50px] h-[50px] object-cover rounded-lg"></img>

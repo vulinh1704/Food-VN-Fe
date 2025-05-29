@@ -83,7 +83,10 @@ export const Invoices = () => {
     const [paramsDefault, setParamsDefault] = useState({
         size: 5,
         sortBy: "createdAt",
-        sortDirection: "desc"
+        sortDirection: "desc",
+        startDate: null,
+        endDate: null,
+        status: null
     });
 
     const getAll = async (params) => {
@@ -138,6 +141,30 @@ export const Invoices = () => {
         getAll(searchParams);
     }
 
+    const searchByFromDate = (value) => {
+        let params = { ...paramsDefault };
+        params.startDate = value;
+        params.page = 0;
+        setPage(1);
+        getAll(params);
+    }
+
+    const searchByToDate = (value) => {
+        let params = { ...paramsDefault };
+        params.endDate = value;
+        params.page = 0;
+        setPage(1);
+        getAll(params);
+    }
+
+    const filterByStatus = (value) => {
+        let params = { ...paramsDefault };
+        params.status = value === "all" ? null : parseInt(value);
+        params.page = 0;
+        setPage(1);
+        getAll(params);
+    }
+
     useEffect(() => {
         const params = {
             ...paramsDefault
@@ -158,27 +185,46 @@ export const Invoices = () => {
                         <div class="flex flex-col">
                             <h4 className="font-medium mb-2">Date</h4>
                             <div className="flex items-center gap-2">
-                                <input type="datetime-local" placeholder="FROM" className="border px-2 py-2 rounded w-60 outline-none focus:border-[#fecb02] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    onChange={e => searchByFromDate(e.target.value)} />
+                                <input 
+                                    type="datetime-local" 
+                                    placeholder="FROM" 
+                                    className="border px-2 py-2 rounded w-60 outline-none focus:border-[#fecb02]"
+                                    onChange={e => searchByFromDate(e.target.value)} 
+                                    value={paramsDefault.startDate || ""}
+                                />
                                 <span>-</span>
-                                <input type="datetime-local" placeholder="TO" className="border px-2 py-2 rounded w-60 outline-none focus:border-[#fecb02] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                    onChange={e => searchByToDate(e.target.value)} />
+                                <input 
+                                    type="datetime-local" 
+                                    placeholder="TO" 
+                                    className="border px-2 py-2 rounded w-60 outline-none focus:border-[#fecb02]"
+                                    onChange={e => searchByToDate(e.target.value)}
+                                    value={paramsDefault.endDate || ""}
+                                />
                             </div>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-sm font-medium mb-1">Status</label>
-                            <select class="w-60 px-3 py-2 border rounded-lg outline-none focus:border-[#fecb02]" onChange={(e) => { sort(e.target.value) }}>
-                                <option value="desc">Newest</option>
-                                <option value="asc">Oldest</option>
-                                <option value="name">Name A-Z</option>
+                            <select 
+                                class="w-60 px-3 py-2 border rounded-lg outline-none focus:border-[#fecb02]" 
+                                onChange={(e) => filterByStatus(e.target.value)}
+                                value={paramsDefault.status === null ? "all" : paramsDefault.status}
+                            >
+                                <option value="all">All</option>
+                                <option value="0">Cancelled</option>
+                                <option value="2">Waiting</option>
+                                <option value="3">Confirmed</option>
+                                <option value="4">Success</option>
                             </select>
                         </div>
                         <div class="flex flex-col">
                             <label class="text-sm font-medium mb-1">Sort by</label>
-                            <select class="w-60 px-3 py-2 border rounded-lg outline-none focus:border-[#fecb02]" onChange={(e) => { sort(e.target.value) }}>
+                            <select 
+                                class="w-60 px-3 py-2 border rounded-lg outline-none focus:border-[#fecb02]" 
+                                onChange={(e) => sort(e.target.value)}
+                                value={paramsDefault.sortDirection}
+                            >
                                 <option value="desc">Newest</option>
                                 <option value="asc">Oldest</option>
-                                <option value="name">Name A-Z</option>
                             </select>
                         </div>
                     </div>

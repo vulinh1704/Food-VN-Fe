@@ -207,12 +207,12 @@ export const Coupon = () => {
                             {
                                 coupons.map(item => (
                                     <tr class="border-b hover:bg-gray-50" key={item.id}>
-                                        <td class="px-6 py-4 font-medium text-gray-900">{parseToVietnamTime(item.createdAt)}</td>
+                                        <td class="px-6 py-4">{parseToVietnamTime(item.createdAt)}</td>
                                         <td class="px-6 py-4 font-medium text-gray-900">{item.name}</td>
-                                        <td class="px-6 py-4 font-medium text-gray-900">{item.type}</td>
-                                        <td class="px-6 py-4 font-medium text-gray-900">{`${formatNumberWithDots(item.discount)} ${item.type == 'percent' ? '%' : 'VNĐ'}`}</td>
-                                        <td class="px-6 py-4 font-medium text-gray-900">{item.fromDate ? parseToVietnamTime(item.fromDate) : "_"}</td>
-                                        <td class="px-6 py-4 font-medium text-gray-900">{item.toDate ? parseToVietnamTime(item.toDate) : "_"}</td>
+                                        <td class="px-6 py-4">{item.type}</td>
+                                        <td class="px-6 py-4">{`${formatNumberWithDots(item.discount)} ${item.type == 'percent' ? '%' : 'VNĐ'}`}</td>
+                                        <td class="px-6 py-4">{item.fromDate ? parseToVietnamTime(item.fromDate) : "_"}</td>
+                                        <td class="px-6 py-4">{item.toDate ? parseToVietnamTime(item.toDate) : "_"}</td>
                                         <td class="px-6 py-4 text-right">
                                             <a class="text-blue-600 hover:underline" onClick={() => {
                                                 setIsOpenEditPopup(true);

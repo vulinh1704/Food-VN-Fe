@@ -1,29 +1,52 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FiTrendingDown, FiTrendingUp } from "react-icons/fi";
+import { getRevenueByAdmin } from "../../../services/revenue-service/revenue-service";
+import { formatNumberWithDots } from "../../../lib/format-hepper";
 
 export const StatCards = () => {
+  const [revenueStats, setRevenueStats] = useState({
+    day: 0,
+    dayPercent: 0,
+    month: 0, 
+    monthPercent: 0,
+    year: 0,
+    yearPercent: 0
+  });
+
+  useEffect(() => {
+    const fetchRevenueStats = async () => {
+      try {
+        const data = await getRevenueByAdmin();
+        setRevenueStats(data);
+      } catch (error) {
+        console.error("Error fetching revenue stats:", error);
+      }
+    };
+    fetchRevenueStats();
+  }, []);
+
   return (
     <>
       <Card
-        title="Gross Revenue"
-        value="$120,054.24"
-        pillText="2.75%"
-        trend="up"
-        period="From Jan 1st - Jul 31st"
+        title="Daily Revenue"
+        value={formatNumberWithDots(revenueStats.day) + " VNĐ"}
+        pillText={Math.abs(revenueStats.dayPercent).toFixed(2) + "%"}
+        trend={revenueStats.dayPercent >= 0 ? "up" : "down"}
+        period="Today vs Yesterday"
       />
       <Card
-        title="Avg Order"
-        value="$27.97"
-        pillText="1.01%"
-        trend="down"
-        period="From Jan 1st - Jul 31st"
+        title="Monthly Revenue"
+        value={formatNumberWithDots(revenueStats.month) + " VNĐ"} 
+        pillText={Math.abs(revenueStats.monthPercent).toFixed(2) + "%"}
+        trend={revenueStats.monthPercent >= 0 ? "up" : "down"}
+        period="This Month vs Last Month"
       />
       <Card
-        title="Trailing Year"
-        value="$278,054.24"
-        pillText="60.75%"
-        trend="up"
-        period="Previous 365 days"
+        title="Yearly Revenue"
+        value={formatNumberWithDots(revenueStats.year) + " VNĐ"}
+        pillText={Math.abs(revenueStats.yearPercent).toFixed(2) + "%"}
+        trend={revenueStats.yearPercent >= 0 ? "up" : "down"}
+        period="This Year vs Last Year"
       />
     </>
   );

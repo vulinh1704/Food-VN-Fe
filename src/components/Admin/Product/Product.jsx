@@ -91,12 +91,16 @@ export const Product = () => {
     }
 
     const filterByScore = (value) => {
-        let params = { ...paramsDefault, minScore: value };
+        let params = { ...paramsDefault };
+        delete params.minScore;
+        if (value) params = { ...paramsDefault, minScore: value };
         getAll(params);
     }
 
     const filterByCategoryId = (value) => {
-        let params = { ...paramsDefault, categoryIds: value };
+        let params = { ...paramsDefault };
+        delete params.categoryIds;
+        if (value) params = { ...paramsDefault, categoryIds: value };
         getAll(params);
     }
 
