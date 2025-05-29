@@ -10,3 +10,8 @@ export const getChartRevenue = async (params) => {
     return data;
 }
 
+export const getProductCategorySalePercent = async (params) => {
+    let { data } = await axiosClient.get("/admin/revenue/chart/category-percent", { params });
+    return data;
+}
+

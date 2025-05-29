@@ -1,10 +1,10 @@
 import { Route, Routes } from "react-router-dom";
 import Layout from "./Layout";
-import { Dashboard } from "./Dashboard/Dashboard";
 import { Product } from "./Product/Product";
 import { Category } from "./Category/Category";
 import { Coupon } from "./Coupon/Counpon";
 import { Invoices } from "./Invoices/Invoices";
+import { Dashboard } from "./Dashboard/DashBoard";
 
 const AdminRouters = () => {
 

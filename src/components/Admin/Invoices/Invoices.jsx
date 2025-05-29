@@ -10,6 +10,7 @@ import { getInvoiceByAdmin, updateStatusInvoice } from "../../../services/invoic
 import { motion, AnimatePresence } from 'framer-motion';
 import { FaChevronDown } from "react-icons/fa6";
 import Select from "react-select";
+import * as XLSX from 'xlsx';
 
 const statusMap = {
     0: { label: "CANCELLED", color: "#dc2626" }, // red-600
@@ -165,6 +166,41 @@ export const Invoices = () => {
         getAll(params);
     }
 
+    const handlePageSizeChange = (value) => {
+        let params = { ...paramsDefault };
+        params.size = parseInt(value);
+        params.page = 0;
+        setPage(1);
+        getAll(params);
+    }
+
+    const exportToExcel = () => {
+        // Chuẩn bị dữ liệu cho Excel
+        const excelData = invoices.map(item => {
+            const address = JSON.parse(item.address);
+            return {
+                'ID': item.id,
+                'User': item.user.username,
+                'Email': item.user.email,
+                'Phone': address.phone,
+                'Date': parseToVietnamTime(item.date),
+                'Customer Name': address.fullName,
+                'Address': `${address.addressDetail}, ${address.address}`,
+                'Total': `${formatNumberWithDots(item.total)} VNĐ`,
+                'Status': statusMap[item.status].label
+            };
+        });
+
+        // Tạo workbook và worksheet
+        const ws = XLSX.utils.json_to_sheet(excelData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Invoices");
+
+        // Tạo file Excel và download
+        const fileName = `invoices_${new Date().toISOString().split('T')[0]}.xlsx`;
+        XLSX.writeFile(wb, fileName);
+    };
+
     useEffect(() => {
         const params = {
             ...paramsDefault
@@ -226,6 +262,27 @@ export const Invoices = () => {
                                 <option value="desc">Newest</option>
                                 <option value="asc">Oldest</option>
                             </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-sm font-medium mb-1">Records per page</label>
+                            <select 
+                                class="w-32 px-3 py-2 border rounded-lg outline-none focus:border-[#fecb02]" 
+                                onChange={(e) => handlePageSizeChange(e.target.value)}
+                                value={paramsDefault.size}
+                            >
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                                <option value="20">20</option>
+                                <option value="50">50</option>
+                            </select>
+                        </div>
+                        <div class="flex flex-col">
+                            <button 
+                                onClick={exportToExcel}
+                                class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                            >
+                                Export Excel
+                            </button>
                         </div>
                     </div>
                 </div>

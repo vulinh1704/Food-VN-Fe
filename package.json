@@ -33,6 +33,7 @@
     "tailwind-scrollbar-hide": "^2.0.0",
     "tinymce": "^7.8.0",
     "uuid": "^11.1.0",
+    "xlsx": "^0.18.5",
     "yup": "^1.6.1"
   },
   "devDependencies": {

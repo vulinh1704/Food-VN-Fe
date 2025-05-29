@@ -9,10 +9,10 @@ export const AccountToggle = () => {
         <img
           src={Logo}
           alt="avatar"
-          className="size-8 rounded shrink-0 bg-violet-500 shadow"
+          className="size-10 rounded shrink-0 bg-violet-500 shadow"
         />
         <div className="text-start">
-          <span className="text-sm font-bold block">Food.VN</span>
+          <span className="text-xl font-bold block">Food.VN</span>
           <span className="text-xs block text-stone-500">Enjoy a tasty dish!</span>
         </div>
 
