@@ -2,11 +2,12 @@ import React from "react";
 import Navbar from "./Navbar/Navbar";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import "../../styles/transitions.css";
 import Footer from "./Footer/Footer";
 import Popup from "./Popup/Popup";
 import AuthPopup from "./Popup/AuthPopup";
 import SidebarMenuPopup from "./Popup/SideBarMenuPopup";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { NavBarProvider } from "../../providers/users/NavBarProvider";
 import { useUser } from "../../providers/users/UserProvider";
 
@@ -14,6 +15,7 @@ const Layout = () => {
     const { orderPopup, setOrderPopup } = useUser();
     const { authPopup, setAuthPopup } = useUser();
     const [isOpenSideBar, setIsOpenSideBar] = React.useState(false);
+    const location = useLocation();
 
     const handleOrderPopup = () => {
         setOrderPopup(!orderPopup);
@@ -28,11 +30,18 @@ const Layout = () => {
     };
 
     React.useEffect(() => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }, [location.pathname]);
+
+    React.useEffect(() => {
         AOS.init({
-            offset: 100,
-            duration: 800,
-            easing: "ease-in-sine",
-            delay: 100,
+            offset: 50,
+            duration: 500,
+            easing: "ease-out",
+            delay: 50,
         });
         AOS.refresh();
     }, []);
@@ -40,10 +49,12 @@ const Layout = () => {
     return (
         <>
             <NavBarProvider>
-                <div className="bg-[#f5f5f5] dark:bg-gray-900 dark:text-white duration-200 ">
+                <div className="bg-[#f5f5f5] dark:bg-gray-900 dark:text-white duration-200">
                     <Navbar handleOrderPopup={handleOrderPopup} handleAuthPopup={handleAuthPopup} handleSideBarMenuPopup={handleSideBarMenuPopup} />
-                    <div className="pt-[170px]">
-                        <Outlet authPopup={authPopup} setAuthPopup={setAuthPopup} />
+                    <div className="pt-[170px] transition-all duration-300 ease-in-out">
+                        <div className="page-transition">
+                            <Outlet authPopup={authPopup} setAuthPopup={setAuthPopup} />
+                        </div>
                     </div>
                     <Popup orderPopup={orderPopup} setOrderPopup={setOrderPopup} />
                     <AuthPopup isOpen={authPopup} setIsOpen={handleAuthPopup} />

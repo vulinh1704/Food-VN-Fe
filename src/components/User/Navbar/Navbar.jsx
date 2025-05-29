@@ -46,6 +46,7 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
   const [searchParams] = useSearchParams();
   const { user, setUser } = useUser();
   const { totalDetail } = useOrder();
+  const { setCard } = useOrder();
 
   const logout = () => {
     localStorage.clear();

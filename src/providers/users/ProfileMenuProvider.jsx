@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState } from 'react';
 const ProfileMenuContext = createContext({});
 export const PROFILE_MENU = {
-  INFO: 1,
-  ADDRESS: 2,
-  INVOICES: 3
+  INFO: "INFO",
+  ADDRESS: "ADDRESS",
+  INVOICES: "INVOICES",
+  CHANGE_PASSWORD: "CHANGE_PASSWORD"
 }
 
 export const ProfileMenuProvider = ({ children }) => {

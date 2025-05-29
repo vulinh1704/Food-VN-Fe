@@ -9,6 +9,7 @@ import Information from "./Profile/Information";
 import Address from "./Profile/Address";
 import { useUser } from "../../providers/users/UserProvider";
 import { OldOrder } from "./Profile/OldOrders";
+import ChangePassword from "./Profile/ChangePassword";
 
 const PrivateRoute = ({ children }) => {
     const { user } = useUser();
@@ -41,6 +42,7 @@ const UserRouter = () => {
                     <Route index element={<Information />} />
                     <Route path="address" element={<Address />} />
                     <Route path="invoices" element={<OldOrder />} />
+                    <Route path="change-password" element={<ChangePassword />} />
                 </Route>
 
                 {/* Catch all route */}

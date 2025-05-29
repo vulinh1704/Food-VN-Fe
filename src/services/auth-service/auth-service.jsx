@@ -21,6 +21,11 @@ export const updateInfo = async (values) => {
     return data;
 }
 
+export const changePassword = async (values) => {
+    let response = await axiosClient.put("/users/change-password", values);
+    console.log(response);
+    return response;
+}
 
 export const getAddressVN = async (_params = { depth: 1 }) => {
     let { data } = await axios.get('https://provinces.open-api.vn/api', _params);

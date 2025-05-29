@@ -4,16 +4,21 @@ import { useNavbar } from '../../../providers/users/NavBarProvider';
 import { Link, Outlet } from 'react-router-dom';
 import { getInfo } from '../../../services/auth-service/auth-service';
 import { PROFILE_MENU, useProfileMenu } from '../../../providers/users/ProfileMenuProvider';
-
+import ProfileSkeleton from './ProfileSkeleton';
 
 const Profile = () => {
   const { setActive } = useNavbar();
   const [userInfo, setUserInfo] = useState();
   const { option } = useProfileMenu();
+  const [isLoading, setIsLoading] = useState(true);
 
   const getUserInfo = async () => {
-    const info = await getInfo();
-    setUserInfo(info);
+    try {
+      const info = await getInfo();
+      setUserInfo(info);
+    } finally {
+      setIsLoading(false);
+    }
   }
   console.log(option);
 
@@ -21,6 +26,10 @@ const Profile = () => {
     setActive(ACTIVE_VALUE_NAVBAR.INFOMATION);
     getUserInfo();
   }, []);
+
+  if (isLoading) {
+    return <ProfileSkeleton />;
+  }
 
   return (
     <>
@@ -39,11 +48,11 @@ const Profile = () => {
               </div>
             </div>
             <nav className="space-y-4 text-sm text-gray-700">
-              <div className={`text-500 font-semibold ${option == PROFILE_MENU.ADDRESS || option == PROFILE_MENU.INFO ? 'text-[#fecb02]' : ''}`}>Your Account</div>
+              <div className={`text-500 font-semibold ${option == PROFILE_MENU.ADDRESS || option == PROFILE_MENU.INFO || option == PROFILE_MENU.CHANGE_PASSWORD ? 'text-[#fecb02]' : ''}`}>Your Account</div>
               <ul className="pl-2 space-y-2 text-sm">
                 <Link to={"/info"}><li className={`${option == PROFILE_MENU.INFO ? 'text-[#fecb02]' : ''}`}>Information</li></Link>
                 <Link to={"/info/address"}><li className={`${option == PROFILE_MENU.ADDRESS ? 'text-[#fecb02]' : ''} mt-2`}>Address</li></Link>
-                <Link to={"/info/address"}><li className={`mt-2`}>Change Password</li></Link>
+                <Link to={"/info/change-password"}><li className={`${option == PROFILE_MENU.CHANGE_PASSWORD ? 'text-[#fecb02]' : ''} mt-2`}>Change Password</li></Link>
               </ul>
               <div className="pt-4 space-y-2">
                 <Link to={"/info/invoices"}>

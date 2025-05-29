@@ -15,13 +15,14 @@ import Loading from "../../Supporter/Loading";
 
 const UserRegisterSchema = Yup.object().shape({
   username: Yup.string()
-    .min(2, 'Too Short!')
-    .max(100, 'Too Long!')
-    .required('Username is required!'),
+    .min(2, 'Username too short')
+    .max(100, 'Username too long')
+    .matches(/^[a-zA-Z0-9_]+$/, 'Only letters, numbers and underscore allowed')
+    .required('Username required'),
   email: Yup.string()
-    .required('Email is required!'),
+    .required('Email required'),
   password: Yup.number()
-    .required('Email is required!'),
+    .required('Password required'),
 });
 
 const AuthPopup = ({ isOpen, setIsOpen }) => {
@@ -66,6 +67,10 @@ const AuthPopup = ({ isOpen, setIsOpen }) => {
       await getUserCard();
       showNotification(NotificationType.SUCCESS, "Login success");
       setIsOpen(false);
+      // Check if user is admin and redirect
+      if (data.roles[0].authority === "ROLE_ADMIN") {
+        navigate('/admin');
+      }
     } catch (e) {
       showNotification(NotificationType.ERROR, e.response.data.message);
     } finally {
@@ -135,8 +140,8 @@ const AuthPopup = ({ isOpen, setIsOpen }) => {
               ) : isLogin ? (
                 <Formik
                   initialValues={{
-                    username: localStorage.getItem('savedCredentials') 
-                      ? JSON.parse(localStorage.getItem('savedCredentials')).username 
+                    username: localStorage.getItem('savedCredentials')
+                      ? JSON.parse(localStorage.getItem('savedCredentials')).username
                       : '',
                     password: localStorage.getItem('savedCredentials')
                       ? JSON.parse(localStorage.getItem('savedCredentials')).password
@@ -166,8 +171,8 @@ const AuthPopup = ({ isOpen, setIsOpen }) => {
                       </span>
                     </div>
                     <div className="flex items-center mb-3">
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         className="mr-2"
                         checked={rememberMe}
                         onChange={(e) => setRememberMe(e.target.checked)}

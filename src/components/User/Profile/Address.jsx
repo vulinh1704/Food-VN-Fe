@@ -303,7 +303,7 @@ const Address = () => {
             <main className="flex-1 p-10 bg-white">
                 <div className="bg-white">
                     <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-lg font-semibold">Địa chỉ của tôi</h2>
+                        <h2 className="text-2xl font-semibold mb-6">My Address</h2>
                         <button class="border-[#fecb02] border text-[#fecb02] px-4 py-2 rounded-lg flex items-center gap-2 focus:bg-[#fecb02] focus:text-white" onClick={() => { setIsOpen(true) }}>
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2"
                                 viewBox="0 0 24 24">

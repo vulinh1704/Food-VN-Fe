@@ -163,6 +163,68 @@ const UserInfo = ({ user }) => {
   );
 };
 
+const LoadingSkeleton = () => {
+  return (
+    <div className="mx-auto px-4 py-12 grid grid-cols-12 gap-8 bg-white mb-8 container animate-pulse">
+      {/* Main Image Skeleton */}
+      <div className="col-span-12 md:col-span-6 xl:col-span-5">
+        <div className="bg-gray-200 aspect-square rounded-xl"></div>
+        <div className="mt-4 grid grid-cols-5 gap-4">
+          {[...Array(5)].map((_, idx) => (
+            <div key={idx} className="bg-gray-200 aspect-square rounded-lg"></div>
+          ))}
+        </div>
+      </div>
+
+      {/* Product Info Skeleton */}
+      <div className="col-span-12 md:col-span-6 xl:col-span-7 space-y-6">
+        <div className="h-10 bg-gray-200 rounded-lg w-3/4"></div>
+        <div className="flex items-center space-x-6">
+          <div className="h-6 bg-gray-200 rounded w-24"></div>
+          <div className="h-6 bg-gray-200 rounded w-24"></div>
+        </div>
+        <div className="w-full p-6 rounded-xl bg-gray-100">
+          <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+        </div>
+        <div className="space-y-4">
+          <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+        </div>
+        <div className="flex gap-4">
+          <div className="h-12 bg-gray-200 rounded flex-1"></div>
+          <div className="h-12 bg-gray-200 rounded flex-1"></div>
+        </div>
+      </div>
+
+      {/* Description Skeleton */}
+      <div className="col-span-12 lg:col-span-8">
+        <div className="border rounded-xl p-8 mt-6">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-6"></div>
+          <div className="space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+            <div className="h-4 bg-gray-200 rounded w-4/6"></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Related Products Skeleton */}
+      <div className="col-span-12 lg:col-span-4 mt-6 space-y-4">
+        <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+        {[...Array(3)].map((_, idx) => (
+          <div key={idx} className="border rounded-xl p-4 flex items-center space-x-4">
+            <div className="w-20 h-20 bg-gray-200 rounded-lg"></div>
+            <div className="flex-1 space-y-2">
+              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const ProductDetail = () => {
   const { setActive } = useNavbar();
   const { id } = useParams();
@@ -174,15 +236,21 @@ const ProductDetail = () => {
   const { card } = useOrder();
   const { user, setAuthPopup, setOrderPopup } = useUser();
   const [relatedProducts, setRelatedProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const getOne = async () => {
-    let data = await getOneById(id);
-    setProduct(data);
-    // Fetch related products after getting product details
-    if (data?.category?.id) {
-      const relatedData = await get20ByCategoryOrNewest({ categoryId: data.category.id });
-      // Filter out the current product from related products
-      setRelatedProducts(relatedData.filter(p => p.id !== data.id).slice(0, 6));
+    try {
+      setIsLoading(true);
+      let data = await getOneById(id);
+      setProduct(data);
+      if (data?.category?.id) {
+        const relatedData = await get20ByCategoryOrNewest({ categoryId: data.category.id });
+        setRelatedProducts(relatedData.filter(p => p.id !== data.id).slice(0, 6));
+      }
+    } catch (error) {
+      console.error("Error fetching product:", error);
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -200,10 +268,13 @@ const ProductDetail = () => {
     if (id) {
       getOne();
       fetchEvaluations();
-      // Reset quantity when changing product
       setQuantity(1);
     }
-  }, [id]); // Add id as dependency to rerender when it changes
+  }, [id]);
+
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
 
   const handleEvaluationSubmitted = () => {
     fetchEvaluations();
@@ -268,32 +339,32 @@ const ProductDetail = () => {
   const isOutOfStock = product?.quantity === 0;
 
   return (
-    product && <div className="mx-auto px-4 py-8 grid grid-cols-12 gap-6 bg-white mb-8 container">
+    product && <div className="mx-auto px-4 py-12 grid grid-cols-12 gap-8 bg-white mb-8 container">
       <NotificationPortal />
       <ImageGallery product={product} />
       {/* Product Info */}
-      <div className="col-span-12 md:col-span-6 xl:col-span-7">
-        <h1 className="text-2xl font-semibold">
+      <div className="col-span-12 md:col-span-6 xl:col-span-7 space-y-6">
+        <h1 className="text-3xl font-bold text-gray-800">
           {product.name}
         </h1>
-        <div className="flex items-center space-x-4 mt-2">
-          <div className="flex gap-2 border-r-2 pr-2">
-            <span className="text-[16px] border-b border-black">
+        <div className="flex items-center space-x-6 mt-2">
+          <div className="flex gap-2 border-r-2 border-gray-200 pr-6">
+            <span className="text-lg font-medium border-b-2 border-[#fecb02]">
               {product.score}
             </span>
             <StarRating rating={product.score} />
           </div>
-          <div className="flex gap-2">
-            <span className="text-[16px] border-b border-black">{evaluations.length}</span>
-            <span>Reviews</span>
+          <div className="flex gap-2 items-center">
+            <span className="text-lg font-medium border-b-2 border-[#fecb02]">{evaluations.length}</span>
+            <span className="text-gray-600">Reviews</span>
           </div>
         </div>
-        <div className="w-full flex items-center bg-gray-100 mt-4 p-4 rounded-lg">
+        <div className="w-full flex items-center bg-gray-50 p-6 rounded-xl shadow-sm">
           <div className="flex-1">
             {product.coupons && product.coupons.length > 0 ? (
               <div>
                 <p className="text-gray-400 line-through text-lg">{formatNumberWithDots(product.price)} VNĐ</p>
-                <p className="text-red-600 text-3xl font-semibold mt-1">
+                <p className="text-red-600 text-4xl font-bold mt-2">
                   {formatNumberWithDots(
                     Math.max(
                       product.coupons.reduce((price, coupon) => {
@@ -308,50 +379,43 @@ const ProductDetail = () => {
                 </p>
               </div>
             ) : (
-              <p className="text-red-600 text-3xl font-semibold">{formatNumberWithDots(product.price)} VNĐ</p>
+              <p className="text-red-600 text-4xl font-bold">{formatNumberWithDots(product.price)} VNĐ</p>
             )}
           </div>
           {product.coupons && product.coupons.length > 0 && (
             <div className="flex flex-col gap-2">
               {product.coupons.map((item, index) => (
-                <p key={index} className="rounded-md bg-red-100 px-3 py-1 text-sm font-medium text-red-600">
+                <p key={index} className="rounded-lg bg-red-100 px-4 py-2 text-sm font-semibold text-red-600">
                   -{formatNumberWithDots(item.discount)} {item.type == "percent" ? "%" : "VNĐ"}
                 </p>
               ))}
             </div>
           )}
         </div>
-        <div className="mt-6">
-          <p className="text-gray-700 text-sm mb-2">Options:</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
-            {['Add Egg', 'Add Noodles', 'Pin', 'Charger'].map((option, idx) => (
-              <button
-                key={idx}
-                className="border px-3 py-1 rounded hover:border-[#fecb02] hover:text-[#fecb02] transition flex items-center gap-2"
-              >
-                <img src="https://down-vn.img.susercontent.com/file/sg-11134201-7reoi-m2xxxg07mz2eb6@resize_w450_nl.webp" alt="" className="w-[30px] h-[30px]" />
-                {option}
-              </button>
-            ))}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <span className="text-gray-600 font-medium min-w-[100px]">Category:</span>
+            <span className="text-gray-800 font-semibold">{product.category.name}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-gray-600 font-medium min-w-[100px]">Availability:</span>
+            <span className="text-gray-800 font-semibold">{product.quantity} items</span>
           </div>
         </div>
-        <div className="mt-6">
-          <p className="text-gray-700 text-sm mb-2">Category: <span className="text-md">{product.category.name}</span></p>
-        </div>
-        <div className="mt-6">
-          <p className="text-gray-700 text-sm mb-2">Quantity: ({product.quantity} available)</p>
+        <div className="pt-2">
+          <p className="text-gray-600 font-medium mb-3">Quantity:</p>
           <div className="flex-1">
-            <div className="flex items-center gap-2 border w-[200px] justify-between rounded-sm">
+            <div className="flex items-center gap-2 border w-[200px] justify-between rounded-lg border-gray-300">
               <button 
-                className={`border-r px-3 py-2 hover:text-[#fecb02] ${(quantity <= 1 || isOutOfStock) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`border-r px-4 py-3 hover:text-[#fecb02] transition-colors ${(quantity <= 1 || isOutOfStock) ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={() => handleQuantityChange(-1)}
                 disabled={quantity <= 1 || isOutOfStock}
               >
                 -
               </button>
-              <span>{quantity}</span>
+              <span className="font-medium text-lg">{quantity}</span>
               <button 
-                className={`border-l px-3 py-2 hover:text-[#fecb02] ${(quantity >= product.quantity || isOutOfStock) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`border-l px-4 py-3 hover:text-[#fecb02] transition-colors ${(quantity >= product.quantity || isOutOfStock) ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={() => handleQuantityChange(1)}
                 disabled={quantity >= product.quantity || isOutOfStock}
               >
@@ -361,9 +425,9 @@ const ProductDetail = () => {
           </div>
         </div>
 
-        <div className="mt-8 flex gap-3">
+        <div className="flex gap-4 pt-4">
           <button 
-            className={`w-full text-[#fecb02] font-normal border border-[#fecb02] bg-[#ffffff] hover:bg-[#f9f5e3] flex items-center justify-center gap-1 ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`flex-1 py-4 text-[#fecb02] font-semibold border-2 border-[#fecb02] bg-white hover:bg-[#fff9e6] transition-colors rounded-lg flex items-center justify-center gap-2 ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handleAddToCart}
             disabled={isOutOfStock}
           >
@@ -371,7 +435,7 @@ const ProductDetail = () => {
             <span>Add to Cart</span>
           </button>
           <button 
-            className={`w-full bg-[#fecb02] text-white py-4 rounded font-semibold text-sm ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`flex-1 py-4 bg-[#fecb02] text-white rounded-lg font-semibold text-base hover:bg-[#e5b700] transition-colors ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handleBuyNow}
             disabled={isOutOfStock}
           >
@@ -379,56 +443,56 @@ const ProductDetail = () => {
           </button>
         </div>
         {isOutOfStock && (
-          <p className="text-red-500 text-sm mt-2 text-center">This product is currently out of stock</p>
+          <p className="text-red-500 text-sm mt-2 text-center font-medium">This product is currently out of stock</p>
         )}
       </div>
 
       {/* Product Description & Review */}
-      <div className="col-span-12 lg:col-span-8 bg-white">
-        <div className="border rounded p-6 mt-6">
-          <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-4">Product Description</h2>
-          <p className="text-base text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: product.description }}></p>
+      <div className="col-span-12 lg:col-span-8">
+        <div className="border rounded-xl p-8 mt-6 shadow-sm">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-4">Product Description</h2>
+          <div className="prose max-w-none text-base text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: product.description }}></div>
         </div>
 
         {/* Product Reviews */}
-        <div className="bg-white border rounded p-6 mt-4">
-          <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-4">Product Reviews</h2>
+        <div className="border rounded-xl p-8 mt-6 shadow-sm">
+          <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-4">Product Reviews</h2>
           
           {/* Evaluation Form */}
-          <div className="mb-8 border-b pb-6">
-            <h3 className="text-xl font-medium mb-4 text-gray-700">Write Your Review</h3>
+          <div className="mb-8 border-b pb-8">
+            <h3 className="text-xl font-semibold mb-6 text-gray-800">Write Your Review</h3>
             <EvaluationForm productId={id} onEvaluationSubmitted={handleEvaluationSubmitted} />
           </div>
 
           {/* Evaluations List */}
-          <div className="space-y-6">
+          <div className="space-y-8">
             {evaluations.map((evaluation, idx) => (
-              <div key={idx} className="border-t pt-4">
-                <div className="flex items-start space-x-3">
+              <div key={idx} className="border-t pt-6">
+                <div className="flex items-start space-x-4">
                   <UserAvatar user={evaluation.user} />
                   <div className="flex-1">
                     <div className="flex items-start justify-between">
-                      <div className="space-y-1">
+                      <div className="space-y-2">
                         <UserInfo user={evaluation.user} />
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-3">
                           <div className="flex text-yellow-400">
                             <StarRating rating={evaluation.score} />
                           </div>
-                          <span className="text-sm text-gray-500">
+                          <span className="text-sm text-gray-500 font-medium">
                             {formatDate(evaluation.createdAt)}
                           </span>
                         </div>
                       </div>
                     </div>
-                    <p className="text-base mt-3 text-gray-700">{evaluation.comment}</p>
+                    <p className="text-base mt-4 text-gray-700">{evaluation.comment}</p>
                     {evaluation.images && evaluation.images.length > 0 && (
-                      <div className="flex gap-3 mt-3">
+                      <div className="flex gap-4 mt-4">
                         {JSON.parse(evaluation.images).map((image, imageIdx) => (
                           <img
                             key={imageIdx}
                             src={image}
                             alt={`Review ${idx + 1} image ${imageIdx + 1}`}
-                            className="w-24 h-24 object-cover rounded-md border border-gray-300"
+                            className="w-24 h-24 object-cover rounded-lg border border-gray-200 hover:border-[#fecb02] transition-colors"
                           />
                         ))}
                       </div>
@@ -438,32 +502,33 @@ const ProductDetail = () => {
               </div>
             ))}
             {evaluations.length === 0 && (
-              <p className="text-center text-gray-500 py-6 text-lg">
+              <p className="text-center text-gray-500 py-8 text-lg">
                 No reviews yet for this product
               </p>
             )}
           </div>
         </div>
       </div>
+
       {/* Sidebar - Related Products */}
       <div className="col-span-12 lg:col-span-4 mt-6 space-y-4">
-        <h3 className="text-lg font-semibold mb-4">Related Products</h3>
+        <h3 className="text-xl font-bold mb-6 text-gray-800">Related Products</h3>
         {relatedProducts.map((item) => (
           <div 
             key={item.id} 
-            className="border rounded p-3 bg-white flex items-center space-x-3 cursor-pointer hover:border-[#fecb02] transition-all duration-300"
+            className="border rounded-xl p-4 bg-white flex items-center space-x-4 cursor-pointer hover:border-[#fecb02] hover:shadow-md transition-all duration-300"
             onClick={() => navigate(`/detail/${item.id}`)}
           >
-            <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center overflow-hidden">
+            <div className="w-20 h-20 bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
               <img src={JSON.parse(item.images)[0]} alt={item.name} className="w-full h-full object-cover" />
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-semibold line-clamp-2">{item.name}</h3>
+              <h3 className="text-base font-semibold line-clamp-2 mb-1 text-gray-800">{item.name}</h3>
               <div>
                 {item.coupons && item.coupons.length > 0 ? (
                   <>
-                    <p className="text-gray-400 line-through text-xs">{formatNumberWithDots(item.price)} VNĐ</p>
-                    <p className="text-red-600 text-sm font-bold">
+                    <p className="text-gray-400 line-through text-sm">{formatNumberWithDots(item.price)} VNĐ</p>
+                    <p className="text-red-600 text-base font-bold">
                       {formatNumberWithDots(
                         Math.max(
                           item.coupons.reduce((price, coupon) => {
@@ -478,20 +543,14 @@ const ProductDetail = () => {
                     </p>
                   </>
                 ) : (
-                  <p className="text-red-600 text-sm font-bold">{formatNumberWithDots(item.price)} VNĐ</p>
+                  <p className="text-red-600 text-base font-bold">{formatNumberWithDots(item.price)} VNĐ</p>
                 )}
               </div>
             </div>
           </div>
         ))}
       </div>
-
-      <div className="col-span-12 lg:col-span-8 ">
-
-      </div>
-
-
-    </div >
+    </div>
   );
 };
 

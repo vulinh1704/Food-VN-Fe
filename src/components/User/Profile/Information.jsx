@@ -67,7 +67,7 @@ const Information = () => {
         <>
             <NotificationPortal />
             <main className="flex-1 p-10 bg-white">
-                <h1 className="text-lg font-semibold mb-2">My Information</h1>
+                <h1 className="text-2xl font-semibold mb-6">My Information</h1>
                 <p className="text-sm text-gray-500 mb-6">
                     Manage profile information to keep your account secure
                 </p>
