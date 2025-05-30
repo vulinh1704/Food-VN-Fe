@@ -2,6 +2,7 @@ import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Partial/Sidebar/Sidebar";
 import { TopBar } from "./Partial/TopBar/TopBar";
 import { SideBarProvider } from "../../providers/admin/SideBarProvider";
+import AdminNotification from "../admin/AdminNotification";
 
 export default function Layout() {
   return (
@@ -12,7 +13,8 @@ export default function Layout() {
           <TopBar />
           <Outlet />
         </div>
-      </main >
+      </main>
+      <AdminNotification />
     </SideBarProvider>
   );
 }
