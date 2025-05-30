@@ -12,6 +12,7 @@ import { FaChevronDown } from "react-icons/fa6";
 import Select from "react-select";
 import * as XLSX from 'xlsx';
 import { FaExclamationCircle } from "react-icons/fa";
+import { useLocation } from "react-router-dom";
 
 const statusMap = {
     0: { label: "CANCELLED", color: "#dc2626" }, // red-600
@@ -154,11 +155,15 @@ export const Invoices = () => {
     const { setActive } = useSideBar();
     const { showNotification, NotificationPortal } = useNotificationPortal();
     const [expandedRows, setExpandedRows] = useState([]);
+    const location = useLocation();
+    const [highlightedOrderId, setHighlightedOrderId] = useState(null);
+    
     const toggleRow = (id) => {
         setExpandedRows(prev =>
             prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
         );
     };
+    
     const [page, setPage] = useState(1);
     const [totalPage, setTotalPage] = useState(1);
     const [paramsDefault, setParamsDefault] = useState({
@@ -169,6 +174,26 @@ export const Invoices = () => {
         endDate: null,
         status: null
     });
+
+    useEffect(() => {
+        // Xử lý navigation state
+        if (location.state?.targetPage) {
+            setPage(location.state.targetPage);
+            const params = {
+                ...paramsDefault,
+                page: location.state.targetPage - 1
+            };
+            getAll(params);
+        }
+        
+        if (location.state?.targetOrderId) {
+            setHighlightedOrderId(location.state.targetOrderId);
+            setExpandedRows([location.state.targetOrderId]);
+            
+            // Xóa state sau khi đã xử lý
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state]);
 
     const getAll = async (params) => {
         try {
@@ -397,7 +422,9 @@ export const Invoices = () => {
                                     <>
                                         <tr
                                             key={item.id}
-                                            className="border-b hover:bg-gray-50 cursor-pointer"
+                                            className={`border-b hover:bg-gray-50 cursor-pointer ${
+                                                highlightedOrderId === item.id ? 'bg-yellow-50' : ''
+                                            }`}
                                         >
                                             <td className="px-6 py-4 font-medium text-gray-900">#{item.id}</td>
                                             <td className="px-6 py-4 text-gray-900">
@@ -425,7 +452,13 @@ export const Invoices = () => {
                                                     }}
                                                 />
                                             </td>
-                                            <td className="px-6 py-4 text-blue-500 underline" onClick={() => toggleRow(item.id)}>
+                                            <td 
+                                                className="px-6 py-4 text-blue-500 underline cursor-pointer" 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    toggleRow(item.id);
+                                                }}
+                                            >
                                                 Detail
                                             </td>
                                         </tr>
@@ -543,7 +576,6 @@ export const Invoices = () => {
                     </div>
                 </div>
             </div>
-
         </>
     );
 };

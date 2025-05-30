@@ -1,0 +1,46 @@
+/* Ẩn icon mặc định của toast */
+.Toastify__toast-icon {
+    display: none !important;
+}
+
+/* Custom style cho toast container */
+.custom-toast {
+    margin: 0 !important;
+    padding: 16px !important;
+    min-height: auto !important;
+    position: relative !important;
+}
+
+/* Thêm margin giữa các toast */
+.Toastify__toast {
+    margin-bottom: 16px !important;
+}
+
+/* Toast cuối cùng không cần margin bottom */
+.Toastify__toast:last-child {
+    margin-bottom: 0 !important;
+}
+
+/* Ẩn padding mặc định của toast body */
+.Toastify__toast-body {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Style cho progress bar */
+.Toastify__progress-bar {
+    height: 3px !important;
+}
+
+/* Style cho nút đóng */
+.Toastify__toast-container button {
+    position: absolute !important;
+    top: 8px !important;
+    right: 8px !important;
+    padding: 4px !important;
+    width: 24px !important;
+    height: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+} 
