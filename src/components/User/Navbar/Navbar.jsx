@@ -188,7 +188,7 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
                       </span>
                     </div>
                   </> :
-                    <div className="relative">
+                    <div className="relative ">
                       <button
                         onClick={handleAuthPopup}
                         className="p-2 flex items-center justify-center"
@@ -231,8 +231,8 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
                     to={data.link}
                     className="inline-flex items-center gap-2 px-20 py-2 hover:text-[#fecb02] duration-200 font-medium text-sm text-gray-600"
                   >
-                    <span className={`text-xl ${active === data.id ? 'text-[#fecb02]' : ''}`}>{data.icon}</span>
-                    <span className={`ml-2 ${active === data.id ? 'text-[#fecb02]' : ''}`}>{data.name}</span>
+                    <span className={`text-2xl ${active === data.id ? 'text-[#fecb02]' : ''}`}>{data.icon}</span>
+                    <span className={`text-md ml-2 ${active === data.id ? 'text-[#fecb02]' : ''}`}>{data.name}</span>
                   </Link>
                 </li>
               )

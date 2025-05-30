@@ -8,7 +8,7 @@ import ConfirmDeleteModal from "../../Supporter/ConfirmDeleteModal";
 import { NotificationType } from "../../Supporter/Notification";
 import { useNotificationPortal } from "../../Supporter/NotificationPortal";
 import AddCoupon from "./AddCoupon";
-import { getAllCoupons } from "../../../services/coupon-service/coupon-service";
+import { deleteCoupon, getAllCoupons } from "../../../services/coupon-service/coupon-service";
 import EditCoupon from "./EditCoupon";
 
 export const Coupon = () => {
@@ -29,13 +29,13 @@ export const Coupon = () => {
         type: '',
         name: '',
         fromDate: null,
-        toDate: null
+        toDate: null,
+        page: 0
     });
     const getAll = async (params) => {
         if (!params) params = paramsDefault;
         const data = await getAllCoupons(params);
         const { content, totalPages } = data;
-        params.page = page - 1;
         setCoupons(content);
         setTotalPage(totalPages > 0 ? totalPages : 1);
         setParamsDefault(params);
@@ -79,8 +79,8 @@ export const Coupon = () => {
         const next = page + 1;
         setPage(next);
         const params = {
-            page: next,
             ...paramsDefault,
+            page: paramsDefault.page + 1,
         }
         getAll(params);
     }
@@ -89,8 +89,8 @@ export const Coupon = () => {
         const prev = page - 1;
         setPage(prev);
         const params = {
-            page: prev,
-            ...paramsDefault
+            ...paramsDefault,
+            page: paramsDefault.page - 1,
         }
         getAll(params);
     }
@@ -109,10 +109,11 @@ export const Coupon = () => {
 
     const onConfirmDeleted = async () => {
         try {
-            await deleteCategory(categoryDelete.id);
-            showNotification(NotificationType.SUCCESS, "Delete category success.");
+            await deleteCoupon(couponDelete.id);
+            showNotification(NotificationType.SUCCESS, "Delete coupon success.");
             await getAll(paramsDefault);
         } catch (e) {
+            console.log(e);
             showNotification(NotificationType.ERROR, e.response.data.message);
         }
     }

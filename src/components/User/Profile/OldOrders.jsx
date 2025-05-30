@@ -9,6 +9,8 @@ import { PROFILE_MENU, useProfileMenu } from "../../../providers/users/ProfileMe
 import Select from "react-select";
 import { updateStatusOrder } from "../../../services/order-service/order-service";
 import { DateRangePicker } from "../../Supporter/DateRangePicker";
+import { CancelOrderModal } from "../../Modals/CancelOrderModal";
+import { FaExclamationCircle } from "react-icons/fa";
 
 const statusMap = {
     0: { label: "CANCELLED", color: "#dc2626" },
@@ -30,11 +32,23 @@ const sortOptions = [
     { value: "asc", label: "Oldest" },
 ];
 
-export function StatusDropdown({ status, onChange }) {
+export function StatusDropdown({ status, onChange, cancellationReason }) {
     if (status !== 2) {
         return (
-            <div style={{ color: statusMap[status].color }}>
-                {statusMap[status].label}
+            <div className="relative">
+                <div style={{ color: statusMap[status].color }}>
+                    {statusMap[status].label}
+                </div>
+                {status === 0 && cancellationReason && (
+                    <div className="absolute -right-6 top-1">
+                        <div className="relative group">
+                            <FaExclamationCircle className="text-red-500 cursor-help" />
+                            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap min-w-[200px] text-center">
+                                {cancellationReason}
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
@@ -87,11 +101,9 @@ export const OldOrder = () => {
     const { showNotification, NotificationPortal } = useNotificationPortal();
     const { setOption } = useProfileMenu();
     const [expandedRows, setExpandedRows] = useState([]);
-    const toggleRow = (id) => {
-        setExpandedRows(prev =>
-            prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
-        );
-    };
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [selectedOrderId, setSelectedOrderId] = useState(null);
+    const [cancellationReason, setCancellationReason] = useState("");
     const [page, setPage] = useState(1);
     const [totalPage, setTotalPage] = useState(1);
     const [paramsDefault, setParamsDefault] = useState({
@@ -114,7 +126,7 @@ export const OldOrder = () => {
             setTotalPage(totalPages > 0 ? totalPages : 1);
             setParamsDefault(params);
         } catch (error) {
-            showNotification("Failed to fetch orders", NotificationType.ERROR);
+            showNotification(NotificationType.ERROR, "Failed to fetch orders");
         }
     }
 
@@ -166,15 +178,48 @@ export const OldOrder = () => {
         getAll(params);
     }
 
-    const cancelOrder = async (id) => {
+    const handleCancelClick = (id) => {
+        setSelectedOrderId(id);
+        setShowCancelModal(true);
+    };
+
+    const handleCancelConfirm = async () => {
+        if (!cancellationReason.trim()) {
+            showNotification(NotificationType.ERROR, "Please enter a reason for cancellation");
+            return;
+        }
+
         try {
-            await updateStatusOrder({ id, status: 0 });
-            showNotification("Order cancelled successfully", NotificationType.SUCCESS);
+            await updateStatusOrder({ 
+                id: selectedOrderId, 
+                status: 0,
+                cancellationReason: cancellationReason.trim()
+            });
+            showNotification(NotificationType.SUCCESS, "Order has been cancelled successfully");
+            setShowCancelModal(false);
+            setCancellationReason("");
+            setSelectedOrderId(null);
             await getAll(paramsDefault);
         } catch (error) {
-            showNotification("Failed to cancel order", NotificationType.ERROR);
+            showNotification(NotificationType.ERROR, "Unable to cancel the order");
         }
-    }
+    };
+
+    const handleCloseModal = () => {
+        setShowCancelModal(false);
+        setCancellationReason("");
+        setSelectedOrderId(null);
+    };
+
+    const toggleRow = (id) => {
+        setExpandedRows(prev => {
+            if (prev.includes(id)) {
+                return prev.filter(rowId => rowId !== id);
+            } else {
+                return [...prev, id];
+            }
+        });
+    };
 
     useEffect(() => {
         const params = {
@@ -191,6 +236,15 @@ export const OldOrder = () => {
         <>
             <main className="flex-1 p-10 bg-white">
                 <NotificationPortal />
+                
+                <CancelOrderModal 
+                    isOpen={showCancelModal}
+                    onClose={handleCloseModal}
+                    onConfirm={handleCancelConfirm}
+                    cancelReason={cancellationReason}
+                    setCancelReason={setCancellationReason}
+                />
+
                 <div class="bg-white p-6 rounded-xl shadow space-y-4">
                     <div class="flex flex-wrap items-end gap-4">
                         <DateRangePicker
@@ -325,8 +379,9 @@ export const OldOrder = () => {
                                                     <StatusDropdown
                                                         status={item.status}
                                                         onChange={() => {
-                                                            cancelOrder(item.id);
+                                                            handleCancelClick(item.id);
                                                         }}
+                                                        cancellationReason={item.cancellationReason}
                                                     />
                                                 </td>
                                                 <td className="px-6 py-4 text-blue-500 underline" onClick={() => toggleRow(item.id)}>

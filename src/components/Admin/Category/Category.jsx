@@ -24,12 +24,12 @@ export const Category = () => {
         size: 5,
         sortBy: "createdAt",
         sortDirection: "desc",
-        name: ''
+        name: '',
+        page: 0
     });
     const getAll = async (params) => {
         const data = await getAllCategories(params);
         const { content, totalPages } = data;
-        params.page = page - 1;
         setCategories(content);
         setTotalPage(totalPages > 0 ? totalPages: 1);
         setParamsDefault(params);
@@ -49,8 +49,8 @@ export const Category = () => {
         const next = page + 1;
         setPage(next);
         const params = {
-            page: next,
             ...paramsDefault,
+            page: paramsDefault.page + 1,
         }
         getAll(params);
     }
@@ -59,8 +59,8 @@ export const Category = () => {
         const prev = page - 1;
         setPage(prev);
         const params = {
-            page: prev,
-            ...paramsDefault
+            ...paramsDefault,
+            page: paramsDefault.page - 1,
         }
         getAll(params);
     }

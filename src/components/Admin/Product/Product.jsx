@@ -12,6 +12,27 @@ import ConfirmDeleteModal from "../../Supporter/ConfirmDeleteModal";
 import { NotificationType } from "../../Supporter/Notification";
 import { getAllData } from "../../../services/category-service/category-service";
 
+const calculateOriginalPrice = (price, coupons) => {
+    if (!coupons || coupons.length === 0) return null;
+    const validCoupons = coupons.filter(coupon => {
+        const fromDate = new Date(coupon.fromDate);
+        const toDate = coupon.toDate ? new Date(coupon.toDate) : new Date('9999-12-31');
+        const now = new Date();
+        return now >= fromDate && now <= toDate;
+    });
+    
+    if (validCoupons.length === 0) return null;
+    
+    // Lấy coupon có discount cao nhất
+    const maxDiscount = Math.max(...validCoupons.map(c => c.discount));
+    const bestCoupon = validCoupons.find(c => c.discount === maxDiscount);
+    
+    if (bestCoupon.type === "percent") {
+        return Math.round(price / (1 - bestCoupon.discount / 100));
+    }
+    return null;
+};
+
 export const Product = () => {
     const { setActive } = useSideBar();
     const [isOpenAddProductPopup, setIsOpenAddProductPopup] = useState(false);
@@ -35,7 +56,8 @@ export const Product = () => {
         minScore: 1,
         maxScore: 5,
         minPrice: 0,
-        maxPrice: 99999999999999
+        maxPrice: 99999999999999,
+        page: 0
     });
 
     const searchByName = (value) => {
@@ -51,7 +73,6 @@ export const Product = () => {
     const getAll = async (params) => {
         const data = await getList(params);
         const { content, totalPages } = data;
-        params.page = page - 1;
         setProducts(content);
         setTotalPage(totalPages > 0 ? totalPages : 1);
         setParamsDefault(params);
@@ -61,8 +82,8 @@ export const Product = () => {
         const next = page + 1;
         setPage(next);
         const params = {
-            page: next,
             ...paramsDefault,
+            page: paramsDefault.page + 1,
         }
         getAll(params);
     }
@@ -71,8 +92,8 @@ export const Product = () => {
         const prev = page - 1;
         setPage(prev);
         const params = {
-            page: prev,
-            ...paramsDefault
+            ...paramsDefault,
+            page: paramsDefault.page - 1,
         }
         getAll(params);
     }
@@ -105,13 +126,13 @@ export const Product = () => {
     }
 
     const onConfirmDeleted = async () => {
-        // try {
+        try {
         await remove(productDelete.id);
         showNotification(NotificationType.SUCCESS, "Delete food success.");
         await getAll(paramsDefault);
-        // } catch (e) {
-        //     showNotification(NotificationType.ERROR, e.response.data.message);
-        // }
+        } catch (e) {
+            showNotification(NotificationType.ERROR, e.response.data.message);
+        }
     }
 
     const searchByMinPrice = (price) => {
@@ -151,7 +172,7 @@ export const Product = () => {
             <NotificationPortal />
             <AddProduct isOpenAddProductPopup={isOpenAddProductPopup} setIsOpenAddProductPopup={setIsOpenAddProductPopup} />
             <DetailProduct isOpeDetailPopup={isOpeDetailPopup} setIsOpenDetailPopup={setIsOpenDetailPopup} idDetail={idDetail} />
-            <EditProduct isOpenEditProductPopup={isOpenEditProductPopup} setIsOpenEditProductPopup={setIsOpenEditProductPopup} idEdit={idEdit} />
+            <EditProduct isOpenEditProductPopup={isOpenEditProductPopup} setIsOpenEditProductPopup={setIsOpenEditProductPopup} idEdit={idEdit} setIdEdit={setIdEdit}/>
             <ConfirmDeleteModal isOpen={isOpenDeletePopup} onClose={() => setIsOpenDeletePopup(false)} onConfirm={onConfirmDeleted}
                 title="Delete Food" message={`Are you sure you want to delete ` + productDelete.name + `?`} />
             <div class="p-6 bg-gray-100 min-h-screen space-y-6">
@@ -248,7 +269,18 @@ export const Product = () => {
                                             <img src={JSON.parse(item.images)[0]} className="w-[50px] h-[50px] object-cover rounded-lg"></img>
                                         </td>
                                         <td class="px-6 py-4">{item.category.name}</td>
-                                        <td class="px-6 py-4">{formatNumberWithDots(item.price)} VNĐ</td>
+                                        <td class="px-6 py-4">
+                                            {formatNumberWithDots(item.price)} VNĐ
+                                            {item.coupons && item.coupons.length > 0 && (
+                                                <>
+                                                    {calculateOriginalPrice(item.price, item.coupons) && (
+                                                        <span className="ml-2 text-gray-400 line-through">
+                                                            {formatNumberWithDots(calculateOriginalPrice(item.price, item.coupons))} VNĐ
+                                                        </span>
+                                                    )}
+                                                </>
+                                            )}
+                                        </td>
                                         <td class="px-6 py-4">
                                             {
                                                 item.quantity
@@ -268,7 +300,7 @@ export const Product = () => {
                                         <td class="px-6 py-4 text-right"><a class="text-blue-600 hover:underline"
                                             onClick={() => {
                                                 setIdEdit(item.id);
-                                                setIsOpenEditProductPopup(true)
+                                                setIsOpenEditProductPopup(true);
                                             }}
                                         >Edit</a></td>
                                         <td class="px-6 py-4 text-right"><a class="text-blue-600 hover:underline"

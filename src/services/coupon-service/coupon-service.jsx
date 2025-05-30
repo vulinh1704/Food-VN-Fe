@@ -19,7 +19,7 @@ export const getOneCoupon = async (id) => {
     return res.data;
 }
 
-export const deleteCategory = async (id) => {
-    let res = await axiosClient.delete("/categories/delete/" + id);
+export const deleteCoupon = async (id) => {
+    let res = await axiosClient.delete("/coupons/delete/" + id);
     return res.data;
 }

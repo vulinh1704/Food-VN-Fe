@@ -13,6 +13,9 @@ import { IoIosCart } from "react-icons/io";
 import { GoListOrdered } from "react-icons/go";
 import { IoMdArrowForward } from "react-icons/io";
 import { TbBasketCancel } from "react-icons/tb";
+import { CancelOrderModal } from '../../Modals/CancelOrderModal';
+import { useNotificationPortal } from '../../Supporter/NotificationPortal';
+import { NotificationType } from '../../Supporter/Notification';
 
 const CustomSelect = ({ options, selectedAddress, onChange }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -74,6 +77,10 @@ const Order = () => {
     const [isDisablePay, setIsDisablePay] = useState(true);
     const [currentStep, setCurrentStep] = useState(1);
     const [orders, setOrders] = useState([]);
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [selectedOrderId, setSelectedOrderId] = useState(null);
+    const [cancellationReason, setCancellationReason] = useState("");
+    const { showNotification, NotificationPortal } = useNotificationPortal();
 
     const getAll = async () => {
         let data = await getAllByOrderId(card.id);
@@ -113,9 +120,37 @@ const Order = () => {
     }
 
     const cancelOrder = async (id) => {
-        await updateStatusOrder({ id, status: 0 });
-        await getListOds();
+        setSelectedOrderId(id);
+        setShowCancelModal(true);
     }
+
+    const handleCancelConfirm = async () => {
+        if (!cancellationReason.trim()) {
+            showNotification(NotificationType.ERROR, "Please enter a reason for cancellation");
+            return;
+        }
+
+        try {
+            await updateStatusOrder({ 
+                id: selectedOrderId, 
+                status: 0, 
+                cancellationReason: cancellationReason.trim() 
+            });
+            showNotification(NotificationType.SUCCESS, "Order has been cancelled successfully");
+            setShowCancelModal(false);
+            setCancellationReason("");
+            setSelectedOrderId(null);
+            await getListOds();
+        } catch (error) {
+            showNotification(NotificationType.ERROR, "Unable to cancel the order");
+        }
+    }
+
+    const handleCloseModal = () => {
+        setShowCancelModal(false);
+        setCancellationReason("");
+        setSelectedOrderId(null);
+    };
 
     const getUserCard = async () => {
         let data = await getCard();
@@ -217,6 +252,7 @@ const Order = () => {
 
     return (
         <div className='container'>
+            <NotificationPortal />
             <StepsBar currentStep={currentStep} setCurrentStep={setCurrentStep} getListOds={getListOds} />
             {
                 currentStep == 1 ?
@@ -392,7 +428,13 @@ const Order = () => {
                         })}
                     </div>
             }
-
+            <CancelOrderModal 
+                isOpen={showCancelModal}
+                onClose={handleCloseModal}
+                onConfirm={handleCancelConfirm}
+                cancelReason={cancellationReason}
+                setCancelReason={setCancellationReason}
+            />
         </div>
     );
 };

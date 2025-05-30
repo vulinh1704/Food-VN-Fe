@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaChevronDown } from "react-icons/fa6";
 import Select from "react-select";
 import * as XLSX from 'xlsx';
+import { FaExclamationCircle } from "react-icons/fa";
 
 const statusMap = {
     0: { label: "CANCELLED", color: "#dc2626" }, // red-600
@@ -24,7 +25,68 @@ const allowedTransitions = {
     3: [4, 0],
 };
 
-export function StatusDropdown({ status, onChange }) {
+function CancellationModal({ isOpen, onClose, onConfirm }) {
+    const [reason, setReason] = useState("");
+
+    const handleSubmit = () => {
+        if (!reason.trim()) {
+            alert("Please enter cancellation reason!");
+            return;
+        }
+        onConfirm(reason);
+        setReason("");
+        onClose();
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-lg w-[500px]">
+                <h2 className="text-xl font-semibold mb-4">Cancellation Reason</h2>
+                <textarea
+                    className="w-full h-32 p-2 border rounded-lg mb-4 resize-none focus:border-[#fecb02] outline-none"
+                    placeholder="Enter cancellation reason..."
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                />
+                <div className="flex justify-end gap-2">
+                    <button
+                        className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                        onClick={onClose}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                        onClick={handleSubmit}
+                    >
+                        Confirm
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export function StatusDropdown({ status, cancellationReason, onChange }) {
+    const [showCancellationModal, setShowCancellationModal] = useState(false);
+    const [pendingStatus, setPendingStatus] = useState(null);
+
+    const handleStatusChange = (newStatus) => {
+        if (newStatus === 0) {
+            setShowCancellationModal(true);
+            setPendingStatus(newStatus);
+        } else {
+            onChange?.(newStatus);
+        }
+    };
+
+    const handleCancellationConfirm = (reason) => {
+        onChange?.(pendingStatus, reason);
+        setPendingStatus(null);
+    };
+
     const isAllowed = (s) =>
         s === status || allowedTransitions[status]?.includes(s);
 
@@ -38,10 +100,10 @@ export function StatusDropdown({ status, onChange }) {
     const selectedOption = options.find((opt) => opt.value === status);
 
     return (
-        <div className="w-[200px]">
+        <div className="w-[200px] relative group">
             <Select
                 value={selectedOption}
-                onChange={(selected) => onChange?.(selected.value)}
+                onChange={(selected) => handleStatusChange(selected.value)}
                 options={options}
                 isOptionDisabled={(option) => option.isDisabled}
                 getOptionLabel={(e) => (
@@ -64,6 +126,24 @@ export function StatusDropdown({ status, onChange }) {
                     }),
                 }}
                 classNamePrefix="react-select"
+            />
+            {status === 0 && cancellationReason && (
+                <div className="absolute -right-6 top-2">
+                    <div className="relative group">
+                        <FaExclamationCircle className="text-red-600 text-lg cursor-help" />
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap min-w-[200px] text-center">
+                            {cancellationReason}
+                        </div>
+                    </div>
+                </div>
+            )}
+            <CancellationModal
+                isOpen={showCancellationModal}
+                onClose={() => {
+                    setShowCancellationModal(false);
+                    setPendingStatus(null);
+                }}
+                onConfirm={handleCancellationConfirm}
             />
         </div>
     );
@@ -91,12 +171,19 @@ export const Invoices = () => {
     });
 
     const getAll = async (params) => {
-        const data = await getInvoiceByAdmin(params);
-        const { content, totalPages } = data;
-        params.page = page - 1;
-        setInvoices(content);
-        setTotalPage(totalPages > 0 ? totalPages : 1);
-        setParamsDefault(params);
+        try {
+            const data = await getInvoiceByAdmin(params);
+            const { content, totalPages } = data;
+            params.page = page - 1;
+            setInvoices(content.map(invoice => ({
+                ...invoice,
+                cancellationReason: invoice.cancellationReason || "No reason provided"
+            })));
+            setTotalPage(totalPages > 0 ? totalPages : 1);
+            setParamsDefault(params);
+        } catch (error) {
+            console.error("Error fetching invoices:", error);
+        }
     }
 
     const nextPage = () => {
@@ -130,10 +217,11 @@ export const Invoices = () => {
         getAll(params);
     }
 
-    const updateOrderStatus = async (id, newStatus) => {
+    const updateOrderStatus = async (id, newStatus, cancellationReason = null) => {
         const params = {
             id,
-            status: newStatus
+            status: newStatus,
+            cancellationReason
         }
         await updateStatusInvoice(params);
         const searchParams = {
@@ -221,17 +309,17 @@ export const Invoices = () => {
                         <div class="flex flex-col">
                             <h4 className="font-medium mb-2">Date</h4>
                             <div className="flex items-center gap-2">
-                                <input 
-                                    type="datetime-local" 
-                                    placeholder="FROM" 
+                                <input
+                                    type="datetime-local"
+                                    placeholder="FROM"
                                     className="border px-2 py-2 rounded w-60 outline-none focus:border-[#fecb02]"
-                                    onChange={e => searchByFromDate(e.target.value)} 
+                                    onChange={e => searchByFromDate(e.target.value)}
                                     value={paramsDefault.startDate || ""}
                                 />
                                 <span>-</span>
-                                <input 
-                                    type="datetime-local" 
-                                    placeholder="TO" 
+                                <input
+                                    type="datetime-local"
+                                    placeholder="TO"
                                     className="border px-2 py-2 rounded w-60 outline-none focus:border-[#fecb02]"
                                     onChange={e => searchByToDate(e.target.value)}
                                     value={paramsDefault.endDate || ""}
@@ -240,8 +328,8 @@ export const Invoices = () => {
                         </div>
                         <div class="flex flex-col">
                             <label class="text-sm font-medium mb-1">Status</label>
-                            <select 
-                                class="w-60 px-3 py-2 border rounded-lg outline-none focus:border-[#fecb02]" 
+                            <select
+                                class="w-60 px-3 py-2 border rounded-lg outline-none focus:border-[#fecb02]"
                                 onChange={(e) => filterByStatus(e.target.value)}
                                 value={paramsDefault.status === null ? "all" : paramsDefault.status}
                             >
@@ -254,8 +342,8 @@ export const Invoices = () => {
                         </div>
                         <div class="flex flex-col">
                             <label class="text-sm font-medium mb-1">Sort by</label>
-                            <select 
-                                class="w-60 px-3 py-2 border rounded-lg outline-none focus:border-[#fecb02]" 
+                            <select
+                                class="w-60 px-3 py-2 border rounded-lg outline-none focus:border-[#fecb02]"
                                 onChange={(e) => sort(e.target.value)}
                                 value={paramsDefault.sortDirection}
                             >
@@ -265,8 +353,8 @@ export const Invoices = () => {
                         </div>
                         <div class="flex flex-col">
                             <label class="text-sm font-medium mb-1">Records per page</label>
-                            <select 
-                                class="w-32 px-3 py-2 border rounded-lg outline-none focus:border-[#fecb02]" 
+                            <select
+                                class="w-32 px-3 py-2 border rounded-lg outline-none focus:border-[#fecb02]"
                                 onChange={(e) => handlePageSizeChange(e.target.value)}
                                 value={paramsDefault.size}
                             >
@@ -277,7 +365,7 @@ export const Invoices = () => {
                             </select>
                         </div>
                         <div class="flex flex-col">
-                            <button 
+                            <button
                                 onClick={exportToExcel}
                                 class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                             >
@@ -331,8 +419,9 @@ export const Invoices = () => {
                                             <td className="px-6 py-4">
                                                 <StatusDropdown
                                                     status={item.status}
-                                                    onChange={(newStatus) => {
-                                                        updateOrderStatus(item.id, newStatus);
+                                                    cancellationReason={item.cancellationReason}
+                                                    onChange={(newStatus, reason) => {
+                                                        updateOrderStatus(item.id, newStatus, reason);
                                                     }}
                                                 />
                                             </td>
@@ -377,11 +466,18 @@ export const Invoices = () => {
                                                                                 </div>
                                                                                 <div>
                                                                                     <div className="text-sm text-gray-500">
-                                                                                        <div className="text-xs text-gray-500">Coupons: {JSON.parse(detail?.coupons).map((e, i) => (<><span className=''>{e.name} - {formatNumberWithDots(e.discount)}{e.type == "percent" ? "%" : "VNĐ"}</span>{i < JSON.parse(detail?.coupons)?.length - 1 ? ", " : ""}</>))}</div>
+                                                                                        {
+                                                                                            detail?.coupons && JSON.parse(detail?.coupons)?.length > 0 && <div className="text-xs text-gray-500">Coupons: {JSON.parse(detail?.coupons).map((e, i) => (<><span className=''>{e.name} - {formatNumberWithDots(e.discount)}{e.type == "percent" ? "%" : "VNĐ"}</span>{i < JSON.parse(detail?.coupons)?.length - 1 ? ", " : ""}</>))}</div>
+                                                                                        }
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
                                                                             <div className="text-right text-sm font-semibold text-gray-700">
+                                                                                {detail?.coupons && JSON.parse(detail?.coupons)?.length > 0 && (
+                                                                                    <span className="line-through text-gray-400 mr-2">
+                                                                                        {(detail.product.price * detail.quantity).toLocaleString()}₫
+                                                                                    </span>
+                                                                                )}
                                                                                 {(detail.price * detail.quantity).toLocaleString()}₫
                                                                             </div>
                                                                         </div>

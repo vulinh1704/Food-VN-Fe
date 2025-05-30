@@ -8,7 +8,7 @@ import {
   Tooltip,
   Legend
 } from "recharts";
-import { format } from "date-fns";
+import { format, startOfMonth } from "date-fns";
 import { getProductCategorySalePercent } from "../../../services/revenue-service/revenue-service";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
@@ -43,7 +43,7 @@ export const UsageRadar = () => {
   const [categoryData, setCategoryData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState({
-    startDate: format(new Date(), 'yyyy-MM-dd'),
+    startDate: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd')
   });
 

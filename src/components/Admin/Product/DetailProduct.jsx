@@ -14,6 +14,20 @@ const DetailProduct = ({ idDetail, isOpeDetailPopup, setIsOpenDetailPopup }) => 
         setProduct(data);
     }
 
+    const calculateDiscountedPrice = (price, coupons) => {
+        if (!coupons || coupons.length === 0) return null;
+        
+        // Get the highest discount
+        const highestDiscount = coupons.reduce((max, coupon) => {
+            const currentDiscount = coupon.type === "percent" 
+                ? price * (coupon.discount / 100)
+                : coupon.discount;
+            return currentDiscount > max ? currentDiscount : max;
+        }, 0);
+
+        return price - highestDiscount;
+    };
+
     useEffect(() => {
         if (idDetail) getOne();
     }, [idDetail]);
@@ -48,7 +62,15 @@ const DetailProduct = ({ idDetail, isOpeDetailPopup, setIsOpenDetailPopup }) => 
                                     </div>
                                     <div className="flex gap-2">
                                         <p className="font-semibold text-black-900">Price:</p>
-                                        <p>{formatNumberWithDots(product.price)} VNĐ</p>
+                                        {product.coupons && product.coupons.length > 0 ? (
+                                            <div className="flex items-center gap-2">
+                                                <p className="line-through text-gray-500">{formatNumberWithDots(product.price)} VNĐ</p>
+                                                <span className="text-gray-500">→</span>
+                                                <p className="text-red-500 font-medium">{formatNumberWithDots(calculateDiscountedPrice(product.price, product.coupons))} VNĐ</p>
+                                            </div>
+                                        ) : (
+                                            <p>{formatNumberWithDots(product.price)} VNĐ</p>
+                                        )}
                                     </div>
                                     <div className="flex gap-2">
                                         <p className="font-semibold text-black-900 dark:text-gray-300">Category:</p>
@@ -59,27 +81,29 @@ const DetailProduct = ({ idDetail, isOpeDetailPopup, setIsOpenDetailPopup }) => 
                                         <p>{product.score}</p>
                                     </div>
                                 </div>
-                                <div >
-                                    <p className="font-semibold text-black-900 dark:text-gray-300">Coupons:</p>
-                                    <table className="w-full text-left table-auto min-w-max">
-                                        <tr>
-                                            <th className="p-4 transition-colors cursor-pointer border-b border-slate-300 bg-slate-50 hover:bg-slate-100">Name</th>
-                                            <th className="p-4 transition-colors cursor-pointer border-b border-slate-300 bg-slate-50 hover:bg-slate-100">Discount</th>
-                                            <th className="p-4 transition-colors cursor-pointer border-b border-slate-300 bg-slate-50 hover:bg-slate-100">From</th>
-                                            <th className="p-4 transition-colors cursor-pointer border-b border-slate-300 bg-slate-50 hover:bg-slate-100">To</th>
-                                        </tr>
-                                        {
-                                            product?.coupons?.map(item => (
-                                                <tr >
-                                                    <td class="p-4 border-b border-slate-200">{item.name}</td>
-                                                    <td class="p-4 border-b border-slate-200">{formatNumberWithDots(item.discount)} {item.type === "percent" ? "%" : "VNĐ"}</td>
-                                                    <td class="p-4 border-b border-slate-200">{item.fromDate ? formatDateTimeLocal(item.fromDate) : "_"}</td>
-                                                    <td class="p-4 border-b border-slate-200">{item.toDate ? formatDateTimeLocal(item.toDate) : "_"}</td>
-                                                </tr>
-                                            ))
-                                        }
-                                    </table>
-                                </div>
+                                {product.coupons && product.coupons.length > 0 && (
+                                    <div>
+                                        <p className="font-semibold text-black-900 dark:text-gray-300">Coupons:</p>
+                                        <table className="w-full text-left table-auto min-w-max">
+                                            <tr>
+                                                <th className="p-4 transition-colors cursor-pointer border-b border-slate-300 bg-slate-50 hover:bg-slate-100">Name</th>
+                                                <th className="p-4 transition-colors cursor-pointer border-b border-slate-300 bg-slate-50 hover:bg-slate-100">Discount</th>
+                                                <th className="p-4 transition-colors cursor-pointer border-b border-slate-300 bg-slate-50 hover:bg-slate-100">From</th>
+                                                <th className="p-4 transition-colors cursor-pointer border-b border-slate-300 bg-slate-50 hover:bg-slate-100">To</th>
+                                            </tr>
+                                            {
+                                                product?.coupons?.map(item => (
+                                                    <tr >
+                                                        <td class="p-4 border-b border-slate-200">{item.name}</td>
+                                                        <td class="p-4 border-b border-slate-200">{formatNumberWithDots(item.discount)} {item.type === "percent" ? "%" : "VNĐ"}</td>
+                                                        <td class="p-4 border-b border-slate-200">{item.fromDate ? formatDateTimeLocal(item.fromDate) : "_"}</td>
+                                                        <td class="p-4 border-b border-slate-200">{item.toDate ? formatDateTimeLocal(item.toDate) : "_"}</td>
+                                                    </tr>
+                                                ))
+                                            }
+                                        </table>
+                                    </div>
+                                )}
                                 <div className="md:col-span-2 mt-2">
                                     <p className="font-semibold text-black-900 dark:text-gray-300 mb-2">Images</p>
                                     <div className="grid md:grid-cols-6 gap-4 mb-3">

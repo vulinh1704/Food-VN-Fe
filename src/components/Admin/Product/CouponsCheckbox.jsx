@@ -1,17 +1,13 @@
 import { useFormikContext } from 'formik';
 import AsyncSelect from 'react-select/async';
 import { getAll } from '../../../services/coupon-service/coupon-service';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { formatDateTimeLocal } from '../../../lib/format-hepper';
 
-const CouponCheckboxList = () => {
+const CouponCheckboxList = ({ onCouponsChange }) => {
     const { values, setFieldValue } = useFormikContext();
     const [selectedCoupons, setSelectedCoupons] = useState([]);
     const [coupons, setCoupons] = useState([]);
-
-    useEffect(() => {
-        setFieldValue('couponIds', selectedCoupons.map((c) => c.value));
-    }, [selectedCoupons]);
 
     useEffect(() => {
         const fetchCoupons = async () => {
@@ -24,22 +20,40 @@ const CouponCheckboxList = () => {
                     .map(c => ({
                         label: `${c.name} | From: ${c.fromDate ? formatDateTimeLocal(c.fromDate) : "_"} - To: ${formatDateTimeLocal(c.toDate)}`,
                         value: c.id,
+                        type: c.type,
+                        discount: c.discount,
+                        name: c.name,
+                        fromDate: c.fromDate,
+                        toDate: c.toDate,
+                        id: c.id
                     }));
                 setSelectedCoupons(matched);
+                onCouponsChange(matched);
             }
-
         };
         fetchCoupons();
-    }, [])
+    }, []);
+
+    const handleCouponChange = (newSelectedCoupons) => {
+        setSelectedCoupons(newSelectedCoupons || []);
+        setFieldValue('couponIds', (newSelectedCoupons || []).map(c => c.value));
+        onCouponsChange(newSelectedCoupons || []);
+    };
 
     const loadOptions = (inputValue, callback) => {
-        const filtered = allCoupons.current.filter(coupon =>
+        const filtered = coupons.filter(coupon =>
             coupon.name.toLowerCase().includes(inputValue.toLowerCase())
         );
 
         const options = filtered.map(coupon => ({
             label: `${coupon.name} | From: ${formatDateTimeLocal(coupon.fromDate)} - To: ${formatDateTimeLocal(coupon.toDate)}`,
             value: coupon.id,
+            type: coupon.type,
+            discount: coupon.discount,
+            name: coupon.name,
+            fromDate: coupon.fromDate,
+            toDate: coupon.toDate,
+            id: coupon.id
         }));
 
         callback(options);
@@ -54,10 +68,16 @@ const CouponCheckboxList = () => {
                 defaultOptions={coupons.map(coupon => ({
                     label: `${coupon.name} | From: ${coupon.fromDate ? formatDateTimeLocal(coupon.fromDate) : "_"} - To: ${formatDateTimeLocal(coupon.toDate)}`,
                     value: coupon.id,
+                    type: coupon.type,
+                    discount: coupon.discount,
+                    name: coupon.name,
+                    fromDate: coupon.fromDate,
+                    toDate: coupon.toDate,
+                    id: coupon.id
                 }))}
                 loadOptions={loadOptions}
                 value={selectedCoupons}
-                onChange={setSelectedCoupons}
+                onChange={handleCouponChange}
                 placeholder="Search coupons..."
             />
 

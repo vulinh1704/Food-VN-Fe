@@ -95,12 +95,36 @@ function DescriptionEditor({ value, onChange }) {
     );
 }
 
-const EditProduct = ({ isOpenEditProductPopup, setIsOpenEditProductPopup, idEdit }) => {
+const calculateDiscountedPrice = (originalPrice, coupons) => {
+    console.log("coupons", coupons);
+    console.log("originalPrice", originalPrice);
+    if (!coupons || coupons.length === 0) return originalPrice;
+
+    let finalPrice = originalPrice;
+    coupons.forEach(coupon => {
+        if (coupon.type === "percent") {
+            const discountAmount = (finalPrice * coupon.discount) / 100;
+            finalPrice -= discountAmount;
+        } else {
+            finalPrice -= coupon.discount;
+        }
+    });
+
+    return Math.max(0, finalPrice);
+};
+
+const formatPrice = (price) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+};
+
+const EditProduct = ({ isOpenEditProductPopup, setIsOpenEditProductPopup, idEdit, setIdEdit }) => {
     const [imageUrls, setImageUrls] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
     const { showNotification, NotificationPortal } = useNotificationPortal();
     const [product, setProduct] = useState(null);
     const [newProduct, setNewProduct] = useState({});
+    const [discountedPrice, setDiscountedPrice] = useState(0);
+    const [selectedCouponsWithDetails, setSelectedCouponsWithDetails] = useState([]);
 
     const getOne = async () => {
         let data = await getOneById(idEdit);
@@ -108,11 +132,23 @@ const EditProduct = ({ isOpenEditProductPopup, setIsOpenEditProductPopup, idEdit
         setImageUrls(JSON.parse(data.images));
         let couponIds = data.coupons.map(item => item.id);
         setNewProduct({ ...data, categoryId: data.category.id, couponIds });
+        setSelectedCouponsWithDetails(data.coupons);
     }
 
     useEffect(() => {
         if (idEdit) getOne();
     }, [idEdit]);
+
+    useEffect(() => {
+        if (product && selectedCouponsWithDetails) {
+            const newDiscountedPrice = calculateDiscountedPrice(product.price, selectedCouponsWithDetails);
+            setDiscountedPrice(newDiscountedPrice);
+        }
+    }, [selectedCouponsWithDetails, product]);
+
+    const handleCouponsChange = (coupons) => {
+        setSelectedCouponsWithDetails(coupons);
+    };
 
     const uploadFiles = async (files) => {
         if (!files || files.length === 0) return;
@@ -181,7 +217,10 @@ const EditProduct = ({ isOpenEditProductPopup, setIsOpenEditProductPopup, idEdit
                                     >
                                         <IoCloseOutline
                                             className="absolute top-4 right-4 text-2xl cursor-pointer text-gray-600 hover:text-red-500"
-                                            onClick={() => setIsOpenEditProductPopup(false)}
+                                            onClick={() => {
+                                                setIsOpenEditProductPopup(false)
+                                                setIdEdit(null)
+                                            }}
                                         />
                                         <h2 className="text-2xl font-semibold text-[#fecb02] text-600 mb-6">Edit Food</h2>
                                         <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -202,6 +241,16 @@ const EditProduct = ({ isOpenEditProductPopup, setIsOpenEditProductPopup, idEdit
                                                     placeholder="Price VNĐ"
                                                     className="border border-gray-300 p-2 rounded text-sm w-full dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:border-[#fecb02]"
                                                 />
+                                            </div>
+                                        </div>
+                                        <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                            <div className="flex items-center">
+                                                <span className="text-sm text-gray-600 dark:text-gray-300">
+                                                    Price after promotion:
+                                                    <span className="font-semibold text-red-600 ml-2">
+                                                        {formatPrice(discountedPrice)}
+                                                    </span>
+                                                </span>
                                             </div>
                                         </div>
                                         <div className="grid md:grid-cols-2 gap-4 mb-4">
@@ -256,7 +305,7 @@ const EditProduct = ({ isOpenEditProductPopup, setIsOpenEditProductPopup, idEdit
                                         </div>
                                         <div className="grid md:grid-cols-1 gap-4 mb-4">
                                             <div className="col-span-1">
-                                                <CouponCheckboxList />
+                                                <CouponCheckboxList onCouponsChange={handleCouponsChange} />
                                                 <ErrorMessage name="categoryId">
                                                     {(msg) => <div className="mt-1 text-red-500 text-xs">{msg}</div>}
                                                 </ErrorMessage>
