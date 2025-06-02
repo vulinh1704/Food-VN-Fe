@@ -1,180 +1,125 @@
-import React, { useRef } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { useWebSocket } from '../../../hooks/useWebSocket';
-import { MdOutlineCancel } from 'react-icons/md';
-import { IoClose } from 'react-icons/io5';
-import { FaCheckCircle } from 'react-icons/fa';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { markNotificationAsRead } from '../../../services/notification-service/notification-service';
-import './UserNotification.css';
+import UserNotificationPanel from './UserNotificationPanel';
 
-// Hằng số cho thời gian hiển thị và số lượng tối đa
-const DISPLAY_DURATION = 120000; // 2 phút
-const MAX_TOASTS = 5;
-
-// Custom styles cho toast
-const toastStyles = {
-    CONFIRMED: {
-        icon: <FaCheckCircle size={24} className="text-green-500" />,
-        className: "bg-green-50 border-l-4 border-green-500",
-        titleClass: "text-green-700",
-        contentClass: "text-green-600",
-        duration: DISPLAY_DURATION,
-        showCloseButton: true,
-        progressBarColor: "rgb(134 239 172)" // green-300
-    },
-    CANCEL_BY_ADMIN: {
-        icon: <MdOutlineCancel size={24} className="text-red-500" />,
-        className: "bg-red-50 border-l-4 border-red-500",
-        titleClass: "text-red-700",
-        contentClass: "text-red-600",
-        duration: DISPLAY_DURATION,
-        showCloseButton: true,
-        progressBarColor: "rgb(252 165 165)" // red-300
-    }
-};
+// Constants for display duration and maximum notifications
+const DISPLAY_DURATION = 120000; // 2 minutes
+const MAX_NOTIFICATIONS = 5;
 
 const UserNotification = ({ userId }) => {
-    const activeToasts = useRef(new Set());
+    const [notifications, setNotifications] = useState([]);
+    const processedNotifications = useRef(new Set());
     const navigate = useNavigate();
+    const location = useLocation();
+    const timeoutRefs = useRef({});
 
-    const removeToast = (id) => {
-        activeToasts.current.delete(id);
-    };
+    const removeNotification = useCallback((notificationId) => {
+        setNotifications(prev => prev.filter(n => n.id !== notificationId));
+        if (timeoutRefs.current[notificationId]) {
+            clearTimeout(timeoutRefs.current[notificationId]);
+            delete timeoutRefs.current[notificationId];
+        }
+    }, []);
 
-    const navigateToOrder = async (orderId) => {
+    const navigateToOrder = useCallback(async (orderId) => {
         try {
-            navigate('/user/orders', { 
-                state: { 
-                    targetOrderId: orderId 
-                } 
-            });
+            // Nếu đang ở trang invoices, dispatch event để mở chi tiết
+            if (location.pathname === '/info/invoices') {
+                // Dispatch event để OldOrders component biết cần mở rộng dòng nào
+                const openDetailEvent = new CustomEvent('openInvoiceDetail', {
+                    detail: { orderId }
+                });
+                window.dispatchEvent(openDetailEvent);
+            } else {
+                // Nếu không ở trang invoices, navigate đến trang đó với orderId
+                navigate('/info/invoices', { 
+                    state: { 
+                        targetOrderId: orderId,
+                        shouldExpand: true // Thêm flag để biết cần mở detail
+                    } 
+                });
+            }
         } catch (error) {
             console.error('Error navigating to order:', error);
-            navigate('/user/orders');
+            navigate('/info/invoices');
         }
-    };
+    }, [navigate, location.pathname]);
 
-    useWebSocket((notification) => {
+    const handleMarkAsRead = useCallback(async (notificationId) => {
+        if (!notificationId || processedNotifications.current.has(notificationId)) {
+            return;
+        }
+
+        try {
+            processedNotifications.current.add(notificationId);
+            await markNotificationAsRead(notificationId);
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+            processedNotifications.current.delete(notificationId);
+        }
+    }, []);
+
+    const handleNotificationClick = useCallback(async (notification) => {
+        const orderId = notification.orders?.id;
+        if (orderId) {
+            if (notification.id) {
+                await handleMarkAsRead(notification.id);
+            }
+            removeNotification(notification.id);
+            navigateToOrder(orderId);
+        }
+    }, [handleMarkAsRead, removeNotification, navigateToOrder]);
+
+    const handleNotificationClose = useCallback(async (notification) => {
+        if (notification.id) {
+            await handleMarkAsRead(notification.id);
+        }
+        removeNotification(notification.id);
+    }, [handleMarkAsRead, removeNotification]);
+
+    const handleNotification = useCallback((notification) => {
         console.log('Notification received in UserNotification:', notification);
         
         if (!userId) return; // Chỉ xử lý khi có userId (đã đăng nhập)
         
-        const message = notification.message;
         const type = notification.type;
-        const orderId = notification.orders?.id;
-        const notificationId = notification.id;
         
         if (!type || !['CONFIRMED', 'CANCEL_BY_ADMIN'].includes(type)) return;
 
-        if (activeToasts.current.size >= MAX_TOASTS) {
-            const oldestToast = Array.from(activeToasts.current)[0];
-            toast.dismiss(oldestToast);
-            activeToasts.current.delete(oldestToast);
-        }
+        // Add new notification to the top of the list
+        setNotifications(prev => {
+            const newNotifications = [notification, ...prev].slice(0, MAX_NOTIFICATIONS);
+            return newNotifications;
+        });
 
-        const style = toastStyles[type];
+        // Auto remove notification after duration
+        const timeoutId = setTimeout(() => {
+            handleNotificationClose(notification);
+        }, DISPLAY_DURATION);
 
-        const toastId = toast(
-            <div 
-                className="flex w-full min-h-[48px] relative pr-2 cursor-pointer"
-                onClick={async () => {
-                    if (orderId) {
-                        if (notificationId) {
-                            try {
-                                await markNotificationAsRead(notificationId);
-                            } catch (error) {
-                                console.error('Error marking notification as read:', error);
-                            }
-                        }
-                        navigateToOrder(orderId);
-                        toast.dismiss(toastId);
-                    }
-                }}
-            >
-                <div className="flex-shrink-0 mr-3 self-center">
-                    {style.icon}
-                </div>
-                <div className="flex-grow py-1">
-                    <p className={`font-medium ${style.titleClass}`}>
-                        {message}
-                    </p>
-                    {type === 'CANCEL_BY_ADMIN' && notification.orders?.cancellationReason && (
-                        <p className={`text-sm mt-1 ${style.contentClass}`}>
-                            Lý do: {notification.orders.cancellationReason}
-                        </p>
-                    )}
-                    <p className="text-xs text-gray-500 mt-1">
-                        {new Date(notification.createdAt).toLocaleString()}
-                    </p>
-                </div>
-                {style.showCloseButton && (
-                    <button 
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (notificationId) {
-                                try {
-                                    markNotificationAsRead(notificationId);
-                                } catch (error) {
-                                    console.error('Error marking notification as read:', error);
-                                }
-                            }
-                            toast.dismiss(toastId);
-                        }}
-                        className="absolute top-0 right-0 p-1.5 hover:bg-gray-200 transition-colors rounded-full"
-                    >
-                        <IoClose size={18} className="text-gray-500" />
-                    </button>
-                )}
-            </div>,
-            {
-                position: "bottom-right",
-                autoClose: style.duration,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: false,
-                progress: undefined,
-                className: `${style.className} shadow-lg rounded-lg p-4 custom-toast`,
-                progressClassName: `progress-bar-custom`,
-                progressStyle: { background: style.progressBarColor },
-                bodyClassName: "p-0 m-0",
-                onClose: () => {
-                    if (notificationId) {
-                        try {
-                            markNotificationAsRead(notificationId);
-                        } catch (error) {
-                            console.error('Error marking notification as read:', error);
-                        }
-                    }
-                    removeToast(toastId);
-                },
-                closeButton: false,
-                icon: false
-            }
-        );
+        timeoutRefs.current[notification.id] = timeoutId;
+    }, [handleNotificationClose]);
 
-        activeToasts.current.add(toastId);
-    }, `/topic/notifications/${userId}`);
+    useWebSocket(handleNotification, `/topic/notifications/${userId}`);
+
+    useEffect(() => {
+        return () => {
+            // Cleanup timeouts
+            Object.values(timeoutRefs.current).forEach(timeoutId => {
+                clearTimeout(timeoutId);
+            });
+            timeoutRefs.current = {};
+            processedNotifications.current.clear();
+        };
+    }, []);
 
     return (
-        <ToastContainer
-            position="bottom-right"
-            autoClose={DISPLAY_DURATION}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick={true}
-            rtl={false}
-            pauseOnFocusLoss
-            draggable={false}
-            pauseOnHover
-            theme="light"
-            limit={MAX_TOASTS}
-            style={{
-                minWidth: '400px',
-                '--toastify-toast-width': '400px'
-            }}
+        <UserNotificationPanel
+            notifications={notifications}
+            onNotificationClick={handleNotificationClick}
+            onNotificationClose={handleNotificationClose}
         />
     );
 };

@@ -11,6 +11,7 @@ import { updateStatusOrder } from "../../../services/order-service/order-service
 import { DateRangePicker } from "../../Supporter/DateRangePicker";
 import { CancelOrderModal } from "../../Modals/CancelOrderModal";
 import { FaExclamationCircle } from "react-icons/fa";
+import { useLocation } from "react-router-dom";
 
 const statusMap = {
     0: { label: "CANCELLED", color: "#dc2626" },
@@ -117,6 +118,8 @@ export const OldOrder = () => {
     });
     const [fromDate, setFromDate] = useState(null);
     const [toDate, setToDate] = useState(null);
+    const [highlightedOrderId, setHighlightedOrderId] = useState(null);
+    const location = useLocation();
 
     const getAll = async (params) => {
         try {
@@ -221,6 +224,10 @@ export const OldOrder = () => {
         });
     };
 
+    const findOrderAndNavigate = (orderId) => {
+        // Implementation of findOrderAndNavigate function
+    };
+
     useEffect(() => {
         const params = {
             ...paramsDefault
@@ -231,6 +238,40 @@ export const OldOrder = () => {
     useEffect(() => {
         setOption(PROFILE_MENU.INVOICES);
     }, []);
+
+    useEffect(() => {
+        if (location.state?.targetOrderId) {
+            const targetOrderId = location.state.targetOrderId;
+            setHighlightedOrderId(targetOrderId);
+            
+            if (location.state.shouldExpand) {
+                setExpandedRows(prev => prev.includes(targetOrderId) ? prev : [...prev, targetOrderId]);
+            }
+            
+            findOrderAndNavigate(targetOrderId);
+            
+            window.history.replaceState({}, document.title);
+        }
+
+        const handleOpenInvoiceDetail = (event) => {
+            const { orderId } = event.detail;
+            setHighlightedOrderId(orderId);
+            setExpandedRows(prev => prev.includes(orderId) ? prev : [...prev, orderId]);
+            
+            const element = document.getElementById(`order-${orderId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                findOrderAndNavigate(orderId);
+            }
+        };
+
+        window.addEventListener('openInvoiceDetail', handleOpenInvoiceDetail);
+        
+        return () => {
+            window.removeEventListener('openInvoiceDetail', handleOpenInvoiceDetail);
+        };
+    }, [location]);
 
     return (
         <>
@@ -245,8 +286,8 @@ export const OldOrder = () => {
                     setCancelReason={setCancellationReason}
                 />
 
-                <div class="bg-white p-6 rounded-xl shadow space-y-4">
-                    <div class="flex flex-wrap items-end gap-4">
+                <div className="bg-white p-6 rounded-xl shadow space-y-4">
+                    <div className="flex flex-wrap items-end gap-4">
                         <DateRangePicker
                             fromDate={fromDate}
                             toDate={toDate}
@@ -259,8 +300,8 @@ export const OldOrder = () => {
                                 searchByToDate(date);
                             }}
                         />
-                        <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-1">Sort by</label>
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium mb-1">Sort by</label>
                             <Select
                                 className="w-60"
                                 options={sortOptions}
@@ -279,8 +320,8 @@ export const OldOrder = () => {
                                 }}
                             />
                         </div>
-                        <div class="flex flex-col">
-                            <label class="text-sm font-medium mb-1">Status</label>
+                        <div className="flex flex-col">
+                            <label className="text-sm font-medium mb-1">Status</label>
                             <Select
                                 className="w-60"
                                 options={statusOptions}
@@ -321,17 +362,17 @@ export const OldOrder = () => {
                     </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-xl shadow mt-10">
-                    <table class="w-full text-sm text-left text-gray-700">
-                        <thead class="text-xs text-gray-600 uppercase bg-gray-100">
+                <div className="bg-white p-4 rounded-xl shadow mt-10">
+                    <table className="w-full text-sm text-left text-gray-700">
+                        <thead className="text-xs text-gray-600 uppercase bg-gray-100">
                             <tr>
-                                <th class="px-6 py-3">Id</th>
-                                <th class="px-6 py-3">User</th>
-                                <th class="px-6 py-3">Date</th>
-                                <th class="px-6 py-3">Address</th>
-                                <th class="px-6 py-3">Total</th>
-                                <th class="px-6 py-3">Status</th>
-                                <th class="px-6 py-3">Detail</th>
+                                <th className="px-6 py-3">ID</th>
+                                <th className="px-6 py-3">User</th>
+                                <th className="px-6 py-3">Date</th>
+                                <th className="px-6 py-3">Address</th>
+                                <th className="px-6 py-3">Total</th>
+                                <th className="px-6 py-3">Status</th>
+                                <th className="px-6 py-3">Detail</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -356,7 +397,10 @@ export const OldOrder = () => {
                                         <>
                                             <tr
                                                 key={item.id}
-                                                className="border-b hover:bg-gray-50 cursor-pointer"
+                                                id={`order-${item.id}`}
+                                                className={`border-b hover:bg-gray-50 cursor-pointer ${
+                                                    highlightedOrderId === item.id ? 'bg-yellow-50' : ''
+                                                }`}
                                             >
                                                 <td className="px-6 py-4 font-medium text-gray-900">#{item.id}</td>
                                                 <td className="px-6 py-4 text-gray-900">
@@ -373,7 +417,7 @@ export const OldOrder = () => {
                                                     <p className="text-gray-500">{address.addressDetail}, {address.address}</p>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <p>{formatNumberWithDots(item.total)} VNĐ</p>
+                                                    <p>{formatNumberWithDots(item.total)} VND</p>
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <StatusDropdown
@@ -400,7 +444,6 @@ export const OldOrder = () => {
                                                                 transition={{ duration: 0.3 }}
                                                                 className="overflow-hidden"
                                                             >
-                                                                {/* Replace with actual order details */}
                                                                 <div className="p-4 bg-white rounded shadow text-sm text-gray-700">
                                                                     <div className="space-y-3">
                                                                         <div>
@@ -425,7 +468,7 @@ export const OldOrder = () => {
                                                                                     </div>
                                                                                     <div>
                                                                                         <div className="text-sm text-gray-500">
-                                                                                            <div className="text-xs text-gray-500">Coupons: {JSON.parse(detail?.coupons).map((e, i) => (<><span className=''>{e.name} - {formatNumberWithDots(e.discount)}{e.type == "percent" ? "%" : "VNĐ"}</span>{i < JSON.parse(detail?.coupons)?.length - 1 ? ", " : ""}</>))}</div>
+                                                                                            <div className="text-xs text-gray-500">Coupons: {JSON.parse(detail?.coupons).map((e, i) => (<><span className=''>{e.name} - {formatNumberWithDots(e.discount)}{e.type == "percent" ? "%" : "VND"}</span>{i < JSON.parse(detail?.coupons)?.length - 1 ? ", " : ""}</>))}</div>
                                                                                         </div>
                                                                                     </div>
                                                                                 </div>
@@ -448,51 +491,50 @@ export const OldOrder = () => {
                         </tbody>
                     </table>
 
-                    <div class="flex justify-between items-center mt-4 px-4 text-gray-600">
+                    <div className="flex justify-between items-center mt-4 px-4 text-gray-600">
                         {
                             page && page > 1 ?
-                                <button class="flex items-center gap-1 text-sm hover:underline" onClick={prevPage}>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                <button className="flex items-center gap-1 text-sm hover:underline" onClick={prevPage}>
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"
                                         viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                                     </svg>
-                                    Prev
+                                    Previous
                                 </button>
                                 :
                                 <button
-                                    class="flex items-center gap-1 text-sm hover:underline opacity-50 cursor-not-allowed pointer-events-none"
+                                    className="flex items-center gap-1 text-sm hover:underline opacity-50 cursor-not-allowed pointer-events-none"
                                     disabled
                                 >
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"
                                         viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
                                     </svg>
-                                    Prev
+                                    Previous
                                 </button>
                         }
                         <span>Page {page} / {totalPage}</span>
                         {
                             page && page < totalPage ?
-                                <button class="flex items-center gap-1 text-sm hover:underline" onClick={nextPage}>
+                                <button className="flex items-center gap-1 text-sm hover:underline" onClick={nextPage}>
                                     Next
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"
                                         viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                                     </svg>
                                 </button>
                                 :
                                 <button
-                                    class="flex items-center gap-1 text-sm hover:underline opacity-50 cursor-not-allowed pointer-events-none"
+                                    className="flex items-center gap-1 text-sm hover:underline opacity-50 cursor-not-allowed pointer-events-none"
                                     disabled
                                 >
                                     Next
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2"
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2"
                                         viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                                     </svg>
                                 </button>
                         }
-
                     </div>
                 </div>
             </main>
