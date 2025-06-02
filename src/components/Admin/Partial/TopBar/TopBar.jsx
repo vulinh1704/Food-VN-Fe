@@ -29,6 +29,19 @@ export const TopBar = () => {
     fetchNotifications();
   }, [filter]);
 
+  // Thêm event listener cho reloadNotifications
+  useEffect(() => {
+    const handleReloadNotifications = () => {
+      fetchNotifications();
+    };
+
+    window.addEventListener('reloadNotifications', handleReloadNotifications);
+    
+    return () => {
+      window.removeEventListener('reloadNotifications', handleReloadNotifications);
+    };
+  }, [filter]); // Thêm filter vào dependencies vì fetchNotifications sử dụng nó
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (notificationRef.current && !notificationRef.current.contains(event.target)) {

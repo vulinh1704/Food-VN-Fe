@@ -158,6 +158,7 @@ export const Invoices = () => {
     const [expandedRows, setExpandedRows] = useState([]);
     const location = useLocation();
     const [highlightedOrderId, setHighlightedOrderId] = useState(null);
+    const [isSearchingOrder, setIsSearchingOrder] = useState(false);
     
     const toggleRow = (id) => {
         setExpandedRows(prev =>
@@ -195,6 +196,19 @@ export const Invoices = () => {
             window.history.replaceState({}, document.title);
         }
     }, [location.state]);
+
+    useEffect(() => {
+        const handleOpenInvoiceDetail = (event) => {
+            const { orderId } = event.detail;
+            findOrderPage(orderId);
+        };
+
+        window.addEventListener('openInvoiceDetail', handleOpenInvoiceDetail);
+        
+        return () => {
+            window.removeEventListener('openInvoiceDetail', handleOpenInvoiceDetail);
+        };
+    }, []);
 
     const getAll = async (params) => {
         try {
@@ -313,6 +327,74 @@ export const Invoices = () => {
         // Tạo file Excel và download
         const fileName = `invoices_${new Date().toISOString().split('T')[0]}.xlsx`;
         XLSX.writeFile(wb, fileName);
+    };
+
+    const findOrderPage = async (orderId) => {
+        setIsSearchingOrder(true);
+        try {
+            // Lưu lại params hiện tại
+            const currentParams = { ...paramsDefault };
+            
+            // Tìm kiếm với page size lớn hơn để giảm số lần gọi API
+            const searchParams = {
+                ...currentParams,
+                size: 50,
+                page: 0
+            };
+            
+            let foundPage = 0;
+            let found = false;
+            
+            while (!found) {
+                searchParams.page = foundPage;
+                const data = await getInvoiceByAdmin(searchParams);
+                
+                if (!data.content || data.content.length === 0) {
+                    break;
+                }
+                
+                const orderIndex = data.content.findIndex(order => order.id === orderId);
+                if (orderIndex !== -1) {
+                    found = true;
+                    // Tính toán trang thực với page size gốc
+                    const actualPage = Math.floor((foundPage * 50 + orderIndex) / currentParams.size) + 1;
+                    
+                    // Set lại page size và page number
+                    const finalParams = {
+                        ...currentParams,
+                        page: actualPage - 1
+                    };
+                    
+                    setPage(actualPage);
+                    await getAll(finalParams);
+                    
+                    // Highlight và mở rộng sau khi đã load đúng trang
+                    setHighlightedOrderId(orderId);
+                    setExpandedRows(prev => prev.includes(orderId) ? prev : [...prev, orderId]);
+                    
+                    // Scroll đến đơn hàng
+                    setTimeout(() => {
+                        const element = document.getElementById(`order-${orderId}`);
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 100);
+                    
+                    break;
+                }
+                
+                foundPage++;
+            }
+            
+            if (!found) {
+                showNotification("Không tìm thấy đơn hàng", NotificationType.ERROR);
+            }
+        } catch (error) {
+            console.error("Error finding order:", error);
+            showNotification("Có lỗi xảy ra khi tìm đơn hàng", NotificationType.ERROR);
+        } finally {
+            setIsSearchingOrder(false);
+        }
     };
 
     useEffect(() => {
