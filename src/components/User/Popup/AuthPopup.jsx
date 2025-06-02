@@ -12,6 +12,7 @@ import { useOrder } from "../../../providers/users/OrderProvider";
 import { getCard } from "../../../services/order-service/order-service";
 import { useNavigate } from "react-router-dom";
 import Loading from "../../Supporter/Loading";
+import { useNotification } from "../../../providers/NotificationProvider";
 
 const UserRegisterSchema = Yup.object().shape({
   username: Yup.string()
@@ -34,6 +35,7 @@ const AuthPopup = ({ isOpen, setIsOpen }) => {
   const { setUser } = useUser();
   const { setCard } = useOrder();
   const navigate = useNavigate();
+  const { showNotification: useNotificationShowNotification } = useNotification();
 
   useEffect(() => {
     // Check if there are saved credentials
@@ -65,14 +67,14 @@ const AuthPopup = ({ isOpen, setIsOpen }) => {
         }));
       }
       await getUserCard();
-      showNotification(NotificationType.SUCCESS, "Login success");
+      useNotificationShowNotification(NotificationType.SUCCESS, "Login success");
       setIsOpen(false);
       // Check if user is admin and redirect
       if (data.roles[0].authority === "ROLE_ADMIN") {
         navigate('/admin');
       }
     } catch (e) {
-      showNotification(NotificationType.ERROR, e.response.data.message);
+      useNotificationShowNotification(NotificationType.ERROR, e.response.data.message);
     } finally {
       setIsLoading(false);
     }
@@ -82,10 +84,10 @@ const AuthPopup = ({ isOpen, setIsOpen }) => {
     try {
       setIsLoading(true);
       await register(values);
-      showNotification(NotificationType.SUCCESS, "Register success");
+      useNotificationShowNotification(NotificationType.SUCCESS, "Register success");
       setIsLogin(true);
     } catch (e) {
-      showNotification(NotificationType.ERROR, e.response.data.message);
+      useNotificationShowNotification(NotificationType.ERROR, e.response.data.message);
     } finally {
       setIsLoading(false);
     }

@@ -13,9 +13,9 @@ import ChangePassword from "./Profile/ChangePassword";
 
 const PrivateRoute = ({ children }) => {
     const { user } = useUser();
-    if (!user) {
-        return <Navigate to="/" replace />;
-    }
+    // if (!user) {
+    //     return <Navigate to="/" replace />;
+    // }
     return children;
 };
 

@@ -8,17 +8,20 @@ import { BrowserRouter } from "react-router-dom";
 import { UserProvider } from "./providers/users/UserProvider.jsx";
 import { ProfileMenuProvider } from "./providers/users/ProfileMenuProvider.jsx";
 import { OrderProvider } from "./providers/users/OrderProvider.jsx";
+import { NotificationProvider } from "./providers/NotificationProvider.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      <UserProvider>
-        <ProfileMenuProvider>
-          <OrderProvider>
-            <App />
-          </OrderProvider>
-        </ProfileMenuProvider>
-      </UserProvider>
+      <NotificationProvider>
+        <UserProvider>
+          <ProfileMenuProvider>
+            <OrderProvider>
+              <App />
+            </OrderProvider>
+          </ProfileMenuProvider>
+        </UserProvider>
+      </NotificationProvider>
     </BrowserRouter>
   </React.StrictMode>
 );

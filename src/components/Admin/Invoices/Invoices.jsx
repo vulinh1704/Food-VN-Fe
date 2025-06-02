@@ -13,6 +13,7 @@ import Select from "react-select";
 import * as XLSX from 'xlsx';
 import { FaExclamationCircle } from "react-icons/fa";
 import { useLocation } from "react-router-dom";
+import { useNotification } from '../../../providers/NotificationProvider';
 
 const statusMap = {
     0: { label: "CANCELLED", color: "#dc2626" }, // red-600
@@ -153,7 +154,7 @@ export function StatusDropdown({ status, cancellationReason, onChange }) {
 export const Invoices = () => {
     const [invoices, setInvoices] = useState([]);
     const { setActive } = useSideBar();
-    const { showNotification, NotificationPortal } = useNotificationPortal();
+    const { showNotification } = useNotification();
     const [expandedRows, setExpandedRows] = useState([]);
     const location = useLocation();
     const [highlightedOrderId, setHighlightedOrderId] = useState(null);
@@ -327,7 +328,6 @@ export const Invoices = () => {
 
     return (
         <>
-            <NotificationPortal />
             <div class="p-6 bg-gray-100 min-h-screen space-y-6">
                 <div class="bg-white p-6 rounded-xl shadow space-y-4">
                     <div class="flex flex-wrap items-end gap-4">

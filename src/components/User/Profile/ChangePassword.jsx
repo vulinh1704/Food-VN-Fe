@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useProfileMenu, PROFILE_MENU } from '../../../providers/users/ProfileMenuProvider';
 import { changePassword } from '../../../services/auth-service/auth-service';
-import { useNotificationPortal } from '../../Supporter/NotificationPortal';
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai';
+import { useNotification } from '../../../providers/NotificationProvider';
 
 const ChangePassword = () => {
     const { setOption } = useProfileMenu();
-    const { showNotification, NotificationPortal } = useNotificationPortal();
+    const { showNotification } = useNotification();
     const [formData, setFormData] = useState({
         oldPassword: "",
         newPassword: ""
@@ -58,7 +58,6 @@ const ChangePassword = () => {
 
     return (
         <>
-            <NotificationPortal />
             <main className="flex-1 p-10 bg-white">
                 <h2 className="text-2xl font-semibold mb-6">Change Password</h2>
                 <form onSubmit={handleSubmit} className="max-w-md">

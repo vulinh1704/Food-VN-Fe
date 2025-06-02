@@ -14,8 +14,8 @@ import { GoListOrdered } from "react-icons/go";
 import { IoMdArrowForward } from "react-icons/io";
 import { TbBasketCancel } from "react-icons/tb";
 import { CancelOrderModal } from '../../Modals/CancelOrderModal';
-import { useNotificationPortal } from '../../Supporter/NotificationPortal';
 import { NotificationType } from '../../Supporter/Notification';
+import { useNotification } from '../../../providers/NotificationProvider';
 
 const CustomSelect = ({ options, selectedAddress, onChange }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -80,7 +80,7 @@ const Order = () => {
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [selectedOrderId, setSelectedOrderId] = useState(null);
     const [cancellationReason, setCancellationReason] = useState("");
-    const { showNotification, NotificationPortal } = useNotificationPortal();
+    const { showNotification } = useNotification();
 
     const getAll = async () => {
         let data = await getAllByOrderId(card.id);
@@ -252,7 +252,6 @@ const Order = () => {
 
     return (
         <div className='container'>
-            <NotificationPortal />
             <StepsBar currentStep={currentStep} setCurrentStep={setCurrentStep} getListOds={getListOds} />
             {
                 currentStep == 1 ?

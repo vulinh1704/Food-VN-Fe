@@ -9,10 +9,13 @@ import EditCategory from "./EditCategory";
 import ConfirmDeleteModal from "../../Supporter/ConfirmDeleteModal";
 import { NotificationType } from "../../Supporter/Notification";
 import { useNotificationPortal } from "../../Supporter/NotificationPortal";
+import { useNotification } from '../../../providers/NotificationProvider';
+
 export const Category = () => {
     const [categories, setCategories] = useState([]);
     const { setActive } = useSideBar();
     const { showNotification, NotificationPortal } = useNotificationPortal();
+    const { showNotification: useNotificationShowNotification } = useNotification();
     const [isOpenAddCategoryPopup, setIsOpenAddCategoryPopup] = useState(false);
     const [isOpenEditCategoryPopup, setIsOpenEditCategoryPopup] = useState(false);
     const [isOpenDeletePopup, setIsOpenDeletePopup] = useState(false);
@@ -27,6 +30,7 @@ export const Category = () => {
         name: '',
         page: 0
     });
+
     const getAll = async (params) => {
         const data = await getAllCategories(params);
         const { content, totalPages } = data;

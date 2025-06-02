@@ -131,7 +131,6 @@ export const Coupon = () => {
 
     return (
         <>
-            <NotificationPortal />
             <AddCoupon isOpenAddPopup={isOpenAddPopup} setIsOpenAddPopup={setIsOpenAddPopup} getAllCoupons={getAllCoupons} />
             <EditCoupon isOpenEditPopup={isOpenEditPopup} setIsOpenEditPopup={setIsOpenEditPopup} idEdit={idEdit} />
             <ConfirmDeleteModal isOpen={isOpenDeletePopup} onClose={() => setIsOpenDeletePopup(false)} onConfirm={onConfirmDeleted}

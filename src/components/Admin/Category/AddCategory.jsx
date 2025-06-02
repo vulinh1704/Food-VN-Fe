@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { IoCloseOutline } from "react-icons/io5";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -11,9 +11,9 @@ import { storage } from "../../../config/fire-base";
 import * as Yup from 'yup';
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import { addCategory } from "../../../services/category-service/category-service";
-import { useNotificationPortal } from "../../Supporter/NotificationPortal";
 import { NotificationType } from "../../Supporter/Notification";
 import { FaSpinner } from "react-icons/fa";
+import { useNotification } from '../../../providers/NotificationProvider';
 
 const CategorySchema = Yup.object().shape({
     name: Yup.string()
@@ -23,7 +23,7 @@ const CategorySchema = Yup.object().shape({
 });
 
 const AddCategory = ({ isOpenAddCategoryPopup, setIsOpenAddCategoryPopup }) => {
-    const { showNotification, NotificationPortal } = useNotificationPortal();
+    const { showNotification } = useNotification();
     const [imageUrl, setImageUrl] = useState("");
     const [imageError, setImageError] = useState("");
     const [isUploading, setIsUploading] = useState(false);
@@ -65,7 +65,6 @@ const AddCategory = ({ isOpenAddCategoryPopup, setIsOpenAddCategoryPopup }) => {
 
     return (
         <>
-            <NotificationPortal />
             <Formik
                 initialValues={{
                     name: ''
