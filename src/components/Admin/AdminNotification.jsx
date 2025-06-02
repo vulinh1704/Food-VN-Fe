@@ -4,9 +4,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { markNotificationAsRead } from '../../services/notification-service/notification-service';
 import CustomNotificationPanel from './CustomNotificationPanel';
 
-// Hằng số cho thời gian hiển thị và số lượng tối đa
-const DISPLAY_DURATION = 60000; // 2 phút cho NEW_ORDER
-const CANCEL_DURATION = 10000;   // 10 giây cho CANCEL_BY_USER
+// Constants for display duration and maximum notifications
+const DISPLAY_DURATION = 60000; // 2 minutes for NEW_ORDER
+const CANCEL_DURATION = 10000;   // 10 seconds for CANCEL_BY_USER
 const MAX_NOTIFICATIONS = 5;
 
 const AdminNotification = () => {
@@ -23,7 +23,7 @@ const AdminNotification = () => {
             delete timeoutRefs.current[notificationId];
         }
 
-        // Dispatch event để cập nhật lại thông báo trên top bar
+        // Dispatch event to update notifications in top bar
         const reloadNotificationsEvent = new CustomEvent('reloadNotifications');
         window.dispatchEvent(reloadNotificationsEvent);
     }, []);
@@ -31,13 +31,13 @@ const AdminNotification = () => {
     const findOrderAndNavigate = useCallback(async (orderId) => {
         try {
             if (location.pathname === '/admin/invoices') {
-                // Nếu đang ở trang invoices, dispatch một event để mở modal chi tiết
+                // If on invoices page, dispatch event to open order detail
                 const openDetailEvent = new CustomEvent('openInvoiceDetail', {
                     detail: { orderId }
                 });
                 window.dispatchEvent(openDetailEvent);
             } else {
-                // Nếu không ở trang invoices, navigate đến trang đó với orderId
+                // If not on invoices page, navigate to it with orderId
                 navigate('/admin/invoices', { 
                     state: { 
                         targetOrderId: orderId 
@@ -59,7 +59,7 @@ const AdminNotification = () => {
             processedNotifications.current.add(notificationId);
             await markNotificationAsRead(notificationId);
             
-            // Dispatch event để cập nhật lại thông báo trên top bar
+            // Dispatch event to update notifications in top bar
             const reloadNotificationsEvent = new CustomEvent('reloadNotifications');
             window.dispatchEvent(reloadNotificationsEvent);
         } catch (error) {
@@ -94,13 +94,13 @@ const AdminNotification = () => {
             return;
         }
 
-        // Thêm thông báo mới vào đầu danh sách
+        // Add new notification to the top of the list
         setNotifications(prev => {
             const newNotifications = [notification, ...prev].slice(0, MAX_NOTIFICATIONS);
             return newNotifications;
         });
 
-        // Tự động xóa thông báo sau một khoảng thời gian
+        // Auto remove notification after duration
         const duration = notification.type === 'CANCEL_BY_USER' ? CANCEL_DURATION : DISPLAY_DURATION;
         const timeoutId = setTimeout(() => {
             handleNotificationClose(notification);
