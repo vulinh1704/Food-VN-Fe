@@ -387,11 +387,11 @@ export const Invoices = () => {
             }
             
             if (!found) {
-                showNotification("Không tìm thấy đơn hàng", NotificationType.ERROR);
+                showNotification("Order not found", NotificationType.ERROR);
             }
         } catch (error) {
             console.error("Error finding order:", error);
-            showNotification("Có lỗi xảy ra khi tìm đơn hàng", NotificationType.ERROR);
+            showNotification("An error occurred while finding the order", NotificationType.ERROR);
         } finally {
             setIsSearchingOrder(false);
         }

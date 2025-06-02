@@ -23,7 +23,7 @@ const NotificationItem = ({ notification, onClose, onClick }) => {
                 <p className="notification-message">{notification.message}</p>
                 {notification.orders?.status === 0 && notification.orders?.cancellationReason && (
                     <p className="notification-reason">
-                        Lý do: {notification.orders.cancellationReason}
+                        Reason: {notification.orders.cancellationReason}
                     </p>
                 )}
                 <p className="notification-time">
@@ -53,7 +53,7 @@ const CustomNotificationPanel = ({ notifications, onNotificationClick, onNotific
     return (
         <div className="notification-panel">
             <div className="notification-header">
-                <h3>Thông báo ({notifications.length})</h3>
+                <h3>Notifications ({notifications.length})</h3>
             </div>
             <div className="notification-list">
                 {notifications.map((notification) => (
