@@ -32,7 +32,7 @@ export const getLatestEvaluations = async (params) => {
 
 export const isEvaluated = async (productId) => {
   try {
-    const response = await axiosClient.get(`/has-ordered/product/` + productId);
+    const response = await axiosClient.get(`/evaluations/has-ordered/product/` + productId);
     return response.data;
   } catch (error) {
     console.error("Error isEvaluated:", error);

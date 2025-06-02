@@ -62,6 +62,7 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
     setUser(null);
     setCard(null); // Reset cart data when logout
     navigate("/");
+    setIsDropdownOpen(false);
   };
 
   useEffect(() => {
@@ -109,7 +110,7 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
     if (!notification.read) {
       try {
         await markNotificationAsRead(notification.id);
-        setNotifications(notifications.map(n => 
+        setNotifications(notifications.map(n =>
           n.id === notification.id ? { ...n, read: true } : n
         ));
         setUnreadCount(prev => Math.max(0, prev - 1));
@@ -120,11 +121,11 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
 
     // Navigate to orders page with the specific order
     if (notification.orders?.id) {
-      navigate('/info/invoices', { 
-        state: { 
+      navigate('/info/invoices', {
+        state: {
           targetOrderId: notification.orders.id,
           shouldExpand: true
-        } 
+        }
       });
       setShowNotifications(false);
     }
@@ -206,36 +207,36 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
                 </div>
               </div>
               <div className="lg:w-auto w-full hidden lg:flex justify-center lg:justify-end items-center gap-4">
-                {user ? 
+                {user ?
                   <>
                     <button
-                      className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-stone-100"
+                      className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-stone-100 relative user-dropdown"
                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                     >
                       <FaRegUser size={22} className="text-gray-700 transition-colors duration-200 hover:text-[#fecb02]" />
+                      {isDropdownOpen && (
+                        <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100">
+                          <Link
+                            to="/info"
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                            onClick={() => {
+                              setActive(ACTIVE_VALUE_NAVBAR.INFOMATION);
+                              setIsDropdownOpen(false);
+                            }}
+                          >
+                            <FaRegUser className="mr-2" />
+                            Information
+                          </Link>
+                          <button
+                            onClick={logout}
+                            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                          >
+                            <FaSignOutAlt className="mr-2" />
+                            Logout
+                          </button>
+                        </div>
+                      )}
                     </button>
-                    {isDropdownOpen && (
-                      <div className="absolute right-[8.5rem] mt-12 w-48 bg-white rounded-md shadow-lg py-1 z-50 border border-gray-100">
-                        <Link
-                          to="/info"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                          onClick={() => setIsDropdownOpen(false)}
-                        >
-                          <FaRegUser className="mr-2" />
-                          Information
-                        </Link>
-                        <button
-                          onClick={() => {
-                            logout();
-                            setIsDropdownOpen(false);
-                          }}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
-                        >
-                          <FaSignOutAlt className="mr-2" />
-                          Logout
-                        </button>
-                      </div>
-                    )}
 
                     <div className="relative" ref={notificationRef}>
                       <button
@@ -257,25 +258,22 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
                               <h3 className="font-semibold">Notifications</h3>
                               <div className="flex gap-2">
                                 <button
-                                  className={`px-2 py-1 text-xs rounded ${
-                                    filter === "day" ? "bg-[#fecb02] text-white" : "bg-gray-100"
-                                  }`}
+                                  className={`px-2 py-1 text-xs rounded ${filter === "day" ? "bg-[#fecb02] text-white" : "bg-gray-100"
+                                    }`}
                                   onClick={() => setFilter("day")}
                                 >
                                   Day
                                 </button>
                                 <button
-                                  className={`px-2 py-1 text-xs rounded ${
-                                    filter === "month" ? "bg-[#fecb02] text-white" : "bg-gray-100"
-                                  }`}
+                                  className={`px-2 py-1 text-xs rounded ${filter === "month" ? "bg-[#fecb02] text-white" : "bg-gray-100"
+                                    }`}
                                   onClick={() => setFilter("month")}
                                 >
                                   Month
                                 </button>
                                 <button
-                                  className={`px-2 py-1 text-xs rounded ${
-                                    filter === "year" ? "bg-[#fecb02] text-white" : "bg-gray-100"
-                                  }`}
+                                  className={`px-2 py-1 text-xs rounded ${filter === "year" ? "bg-[#fecb02] text-white" : "bg-gray-100"
+                                    }`}
                                   onClick={() => setFilter("year")}
                                 >
                                   Year
@@ -288,9 +286,8 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
                               notifications.map((notification, index) => (
                                 <div
                                   key={index}
-                                  className={`p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${
-                                    !notification.read ? 'bg-blue-50' : ''
-                                  }`}
+                                  className={`p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer ${!notification.read ? 'bg-blue-50' : ''
+                                    }`}
                                   onClick={() => handleNotificationClick(notification)}
                                 >
                                   <p className="text-sm">{notification.message}</p>
@@ -325,7 +322,7 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
                         {totalDetail}
                       </span>
                     </div>
-                  </> 
+                  </>
                   :
                   <>
                     <button

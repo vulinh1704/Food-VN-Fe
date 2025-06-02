@@ -10,7 +10,7 @@ import { useNavbar } from "../../../providers/users/NavBarProvider";
 import { ACTIVE_VALUE_NAVBAR } from "../../../lib/app-const";
 import { useParams, useNavigate } from "react-router-dom";
 import { getOneById, get20ByCategoryOrNewest } from "../../../services/product-service/product-service";
-import { getProductEvaluations } from "../../../services/evaluation-service/evaluation-service";
+import { getProductEvaluations, isEvaluated } from "../../../services/evaluation-service/evaluation-service";
 import { addOrderDetail } from "../../../services/order-service/order-service";
 import EvaluationForm from "./EvaluationForm";
 import { useNotificationPortal } from "../../Supporter/NotificationPortal";
@@ -237,6 +237,7 @@ const ProductDetail = () => {
   const { user, setAuthPopup, setOrderPopup } = useUser();
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [canEvaluate, setCanEvaluate] = useState(false);
 
   const getOne = async () => {
     try {
@@ -263,21 +264,37 @@ const ProductDetail = () => {
     }
   };
 
+  const checkEvaluationPermission = async () => {
+    if (!user) {
+      setCanEvaluate(false);
+      return;
+    }
+    try {
+      const hasPermission = await isEvaluated(id);
+      setCanEvaluate(hasPermission);
+    } catch (error) {
+      console.error("Error checking evaluation permission:", error);
+      setCanEvaluate(false);
+    }
+  };
+
   useEffect(() => {
     setActive(ACTIVE_VALUE_NAVBAR.FOOD);
     if (id) {
       getOne();
       fetchEvaluations();
       setQuantity(1);
+      checkEvaluationPermission();
     }
-  }, [id]);
+  }, [id, user]);
 
   if (isLoading) {
     return <LoadingSkeleton />;
   }
 
-  const handleEvaluationSubmitted = () => {
-    fetchEvaluations();
+  const handleEvaluationSubmitted = async () => {
+    await fetchEvaluations();
+    await checkEvaluationPermission();
   };
 
   const handleQuantityChange = (change) => {
@@ -459,10 +476,26 @@ const ProductDetail = () => {
           <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-4">Product Reviews</h2>
           
           {/* Evaluation Form */}
-          <div className="mb-8 border-b pb-8">
-            <h3 className="text-xl font-semibold mb-6 text-gray-800">Write Your Review</h3>
-            <EvaluationForm productId={id} onEvaluationSubmitted={handleEvaluationSubmitted} />
-          </div>
+          {user ? (
+            canEvaluate ? (
+              <div className="mb-8 border-b pb-8">
+                <h3 className="text-xl font-semibold mb-6 text-gray-800">Write Your Review</h3>
+                <EvaluationForm productId={id} onEvaluationSubmitted={handleEvaluationSubmitted} />
+              </div>
+            ) : (
+              <div className="mb-8 border-b pb-8">
+                <p className="text-center text-gray-500 py-4">
+                  You can only review products that you have purchased and received.
+                </p>
+              </div>
+            )
+          ) : (
+            <div className="mb-8 border-b pb-8">
+              <p className="text-center text-gray-500 py-4">
+                Please <button onClick={() => setAuthPopup(true)} className="text-[#fecb02] font-medium hover:underline">login</button> to write a review.
+              </p>
+            </div>
+          )}
 
           {/* Evaluations List */}
           <div className="space-y-8">
