@@ -109,7 +109,7 @@ const AdminNotification = () => {
         timeoutRefs.current[notification.id] = timeoutId;
     }, [handleNotificationClose]);
 
-    useWebSocket(handleNotification);
+    useWebSocket(handleNotification, '/topic/notifications/admin');
 
     useEffect(() => {
         return () => {

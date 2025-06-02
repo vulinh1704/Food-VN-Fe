@@ -13,6 +13,8 @@ class WebSocketService {
     static instance;
     messageHandlers = [];
     isConnected = false;
+    currentSubscription = null;
+    pendingTopic = null;
 
     constructor() {
         const token = localStorage.getItem('accessToken');
@@ -53,7 +55,7 @@ class WebSocketService {
                     this.client.stompClient.connectHeaders = {
                         'Authorization': `Bearer ${token}`,
                         'X-Authorization': `Bearer ${token}`,
-                        'heart-beat': '0,0'  
+                        'heart-beat': '0,0'
                     };
                 }
             },
@@ -68,7 +70,9 @@ class WebSocketService {
         this.client.onConnect = () => {
             console.log('STOMP Connected');
             this.isConnected = true;
-            this.subscribeToNotifications();
+            if (this.pendingTopic) {
+                this.subscribeToNotifications(this.pendingTopic);
+            }
         };
 
         this.client.onDisconnect = () => {
@@ -112,9 +116,26 @@ class WebSocketService {
         }
     }
 
-    subscribeToNotifications() {
+    subscribeToNotifications(topic) {
+        if (!topic) return;
+
+        // Lưu topic để subscribe lại khi kết nối được thiết lập
+        this.pendingTopic = topic;
+
+        // Nếu chưa kết nối, đợi đến khi kết nối thành công
+        if (!this.isConnected) {
+            return;
+        }
+
         try {
-            this.client.subscribe('/topic/notifications/admin', (message) => {
+            // Hủy subscription cũ nếu có
+            if (this.currentSubscription) {
+                this.currentSubscription.unsubscribe();
+                this.currentSubscription = null;
+            }
+
+            console.log('Subscribing to topic:', topic);
+            this.currentSubscription = this.client.subscribe(topic, (message) => {
                 console.log('Raw message received:', message);
                 console.log('Message body:', message.body);
                 

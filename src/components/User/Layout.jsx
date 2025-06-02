@@ -61,7 +61,7 @@ const Layout = () => {
                     <AuthPopup isOpen={authPopup} setIsOpen={handleAuthPopup} />
                     <SidebarMenuPopup isOpen={isOpenSideBar} setIsOpen={setIsOpenSideBar} />
                     <Footer />
-                    {/* {user && <UserNotification userId={user.id} />} */}
+                    {user && <UserNotification userId={user.id} />}
                 </div>
             </NavBarProvider>
         </>
