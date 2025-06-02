@@ -193,8 +193,8 @@ export const OldOrder = () => {
         }
 
         try {
-            await updateStatusOrder({ 
-                id: selectedOrderId, 
+            await updateStatusOrder({
+                id: selectedOrderId,
                 status: 0,
                 cancellationReason: cancellationReason.trim()
             });
@@ -243,13 +243,13 @@ export const OldOrder = () => {
         if (location.state?.targetOrderId) {
             const targetOrderId = location.state.targetOrderId;
             setHighlightedOrderId(targetOrderId);
-            
+
             if (location.state.shouldExpand) {
                 setExpandedRows(prev => prev.includes(targetOrderId) ? prev : [...prev, targetOrderId]);
             }
-            
+
             findOrderAndNavigate(targetOrderId);
-            
+
             window.history.replaceState({}, document.title);
         }
 
@@ -257,7 +257,7 @@ export const OldOrder = () => {
             const { orderId } = event.detail;
             setHighlightedOrderId(orderId);
             setExpandedRows(prev => prev.includes(orderId) ? prev : [...prev, orderId]);
-            
+
             const element = document.getElementById(`order-${orderId}`);
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -267,7 +267,7 @@ export const OldOrder = () => {
         };
 
         window.addEventListener('openInvoiceDetail', handleOpenInvoiceDetail);
-        
+
         return () => {
             window.removeEventListener('openInvoiceDetail', handleOpenInvoiceDetail);
         };
@@ -277,8 +277,8 @@ export const OldOrder = () => {
         <>
             <main className="flex-1 p-10 bg-white">
                 <NotificationPortal />
-                
-                <CancelOrderModal 
+
+                <CancelOrderModal
                     isOpen={showCancelModal}
                     onClose={handleCloseModal}
                     onConfirm={handleCancelConfirm}
@@ -398,9 +398,8 @@ export const OldOrder = () => {
                                             <tr
                                                 key={item.id}
                                                 id={`order-${item.id}`}
-                                                className={`border-b hover:bg-gray-50 cursor-pointer ${
-                                                    highlightedOrderId === item.id ? 'bg-yellow-50' : ''
-                                                }`}
+                                                className={`border-b hover:bg-gray-50 cursor-pointer ${highlightedOrderId === item.id ? 'bg-yellow-50' : ''
+                                                    }`}
                                             >
                                                 <td className="px-6 py-4 font-medium text-gray-900">#{item.id}</td>
                                                 <td className="px-6 py-4 text-gray-900">
@@ -467,9 +466,14 @@ export const OldOrder = () => {
                                                                                         </div>
                                                                                     </div>
                                                                                     <div>
-                                                                                        <div className="text-sm text-gray-500">
-                                                                                            <div className="text-xs text-gray-500">Coupons: {JSON.parse(detail?.coupons).map((e, i) => (<><span className=''>{e.name} - {formatNumberWithDots(e.discount)}{e.type == "percent" ? "%" : "VND"}</span>{i < JSON.parse(detail?.coupons)?.length - 1 ? ", " : ""}</>))}</div>
-                                                                                        </div>
+                                                                                        {
+                                                                                            JSON.parse(detail?.coupons)?.length > 0 && (
+                                                                                                <div className="text-sm text-gray-500">
+                                                                                                    <div className="text-xs text-gray-500">Coupons: {JSON.parse(detail?.coupons).map((e, i) => (<><span className=''>{e.name} - {formatNumberWithDots(e.discount)}{e.type == "percent" ? "%" : "VND"}</span>{i < JSON.parse(detail?.coupons)?.length - 1 ? ", " : ""}</>))}</div>
+                                                                                                </div>
+                                                                                            )
+                                                                                        }
+
                                                                                     </div>
                                                                                 </div>
                                                                                 <div className="text-right text-sm font-semibold text-gray-700">
