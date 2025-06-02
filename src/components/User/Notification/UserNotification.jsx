@@ -25,19 +25,16 @@ const UserNotification = ({ userId }) => {
 
     const navigateToOrder = useCallback(async (orderId) => {
         try {
-            // Nếu đang ở trang invoices, dispatch event để mở chi tiết
             if (location.pathname === '/info/invoices') {
-                // Dispatch event để OldOrders component biết cần mở rộng dòng nào
                 const openDetailEvent = new CustomEvent('openInvoiceDetail', {
                     detail: { orderId }
                 });
                 window.dispatchEvent(openDetailEvent);
             } else {
-                // Nếu không ở trang invoices, navigate đến trang đó với orderId
                 navigate('/info/invoices', { 
                     state: { 
                         targetOrderId: orderId,
-                        shouldExpand: true // Thêm flag để biết cần mở detail
+                        shouldExpand: true 
                     } 
                 });
             }

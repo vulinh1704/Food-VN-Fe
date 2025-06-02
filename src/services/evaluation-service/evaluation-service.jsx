@@ -29,3 +29,13 @@ export const getLatestEvaluations = async (params) => {
     throw error;
   }
 }; 
+
+export const isEvaluated = async (productId) => {
+  try {
+    const response = await axiosClient.get(`/has-ordered/product/` + productId);
+    return response.data;
+  } catch (error) {
+    console.error("Error isEvaluated:", error);
+    throw error;
+  }
+}
