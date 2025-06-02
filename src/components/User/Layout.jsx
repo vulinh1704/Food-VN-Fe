@@ -10,9 +10,10 @@ import SidebarMenuPopup from "./Popup/SideBarMenuPopup";
 import { Outlet, useLocation } from "react-router-dom";
 import { NavBarProvider } from "../../providers/users/NavBarProvider";
 import { useUser } from "../../providers/users/UserProvider";
+import UserNotification from "./Notification/UserNotification";
 
 const Layout = () => {
-    const { orderPopup, setOrderPopup } = useUser();
+    const { orderPopup, setOrderPopup, user } = useUser();
     const { authPopup, setAuthPopup } = useUser();
     const [isOpenSideBar, setIsOpenSideBar] = React.useState(false);
     const location = useLocation();
@@ -60,6 +61,7 @@ const Layout = () => {
                     <AuthPopup isOpen={authPopup} setIsOpen={handleAuthPopup} />
                     <SidebarMenuPopup isOpen={isOpenSideBar} setIsOpen={setIsOpenSideBar} />
                     <Footer />
+                    {/* {user && <UserNotification userId={user.id} />} */}
                 </div>
             </NavBarProvider>
         </>
