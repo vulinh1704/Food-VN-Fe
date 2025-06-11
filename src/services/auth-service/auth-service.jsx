@@ -1,5 +1,6 @@
 import axios from "axios";
 import axiosClient from "../../lib/axios-client"
+import { use } from "react";
 
 export const register = async (user) => {
     let { data } = await axiosClient.post("/register", user);
@@ -7,8 +8,9 @@ export const register = async (user) => {
 }
 
 export const login = async (user) => {
-    let { data } = await axiosClient.post("/login", user);
-    return data;
+    let res = await axiosClient.post("/login", user);
+    console.log(res)
+    return res.data;
 }
 
 export const getInfo = async () => {

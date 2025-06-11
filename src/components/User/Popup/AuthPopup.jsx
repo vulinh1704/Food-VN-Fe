@@ -22,7 +22,7 @@ const UserRegisterSchema = Yup.object().shape({
     .required('Username required'),
   email: Yup.string()
     .required('Email required'),
-  password: Yup.number()
+  password: Yup.string()
     .required('Password required'),
 });
 

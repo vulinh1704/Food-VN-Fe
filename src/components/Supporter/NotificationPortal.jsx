@@ -14,7 +14,7 @@ export function useNotificationPortal() {
   };
 
   const Portal = () => (
-    <div className="absolute top-4 right-4 space-y-3 z-[9999] w-[300px]">
+    <div className="fixed top-4 right-4 space-y-3 z-[9999] w-[300px]">
       {toasts.map((toast) => (
         <Notification key={toast.id} type={toast.type} message={toast.message} />
       ))}
