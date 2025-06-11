@@ -20,13 +20,13 @@ const calculateOriginalPrice = (price, coupons) => {
         const now = new Date();
         return now >= fromDate && now <= toDate;
     });
-    
+
     if (validCoupons.length === 0) return null;
-    
+
     // Lấy coupon có discount cao nhất
     const maxDiscount = Math.max(...validCoupons.map(c => c.discount));
     const bestCoupon = validCoupons.find(c => c.discount === maxDiscount);
-    
+
     if (bestCoupon.type === "percent") {
         return Math.round(price / (1 - bestCoupon.discount / 100));
     }
@@ -127,9 +127,9 @@ export const Product = () => {
 
     const onConfirmDeleted = async () => {
         try {
-        await remove(productDelete.id);
-        showNotification(NotificationType.SUCCESS, "Delete food success.");
-        await getAll(paramsDefault);
+            await remove(productDelete.id);
+            showNotification(NotificationType.SUCCESS, "Delete food success.");
+            await getAll(paramsDefault);
         } catch (e) {
             showNotification(NotificationType.ERROR, e.response.data.message);
         }
@@ -172,7 +172,7 @@ export const Product = () => {
             <NotificationPortal />
             <AddProduct isOpenAddProductPopup={isOpenAddProductPopup} setIsOpenAddProductPopup={setIsOpenAddProductPopup} />
             <DetailProduct isOpeDetailPopup={isOpeDetailPopup} setIsOpenDetailPopup={setIsOpenDetailPopup} idDetail={idDetail} />
-            <EditProduct isOpenEditProductPopup={isOpenEditProductPopup} setIsOpenEditProductPopup={setIsOpenEditProductPopup} idEdit={idEdit} setIdEdit={setIdEdit}/>
+            <EditProduct isOpenEditProductPopup={isOpenEditProductPopup} setIsOpenEditProductPopup={setIsOpenEditProductPopup} idEdit={idEdit} setIdEdit={setIdEdit} />
             <ConfirmDeleteModal isOpen={isOpenDeletePopup} onClose={() => setIsOpenDeletePopup(false)} onConfirm={onConfirmDeleted}
                 title="Delete Food" message={`Are you sure you want to delete ` + productDelete.name + `?`} />
             <div class="p-6 bg-gray-100 min-h-screen space-y-6">
@@ -273,11 +273,11 @@ export const Product = () => {
                                             {formatNumberWithDots(item.price)} VNĐ
                                             {item.coupons && item.coupons.length > 0 && (
                                                 <>
-                                                    {calculateOriginalPrice(item.price, item.coupons) && (
-                                                        <span className="ml-2 text-gray-400 line-through">
+                                                    {/* {calculateOriginalPrice(item.price, item.coupons) && ( */}
+                                                        {/* <span className="ml-2 text-gray-400 line-through">
                                                             {formatNumberWithDots(calculateOriginalPrice(item.price, item.coupons))} VNĐ
-                                                        </span>
-                                                    )}
+                                                        </span> */}
+                                                    {/* )} */}
                                                 </>
                                             )}
                                         </td>

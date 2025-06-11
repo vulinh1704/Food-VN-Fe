@@ -126,6 +126,7 @@ const AddProduct = ({ isOpenAddProductPopup, setIsOpenAddProductPopup }) => {
         try {
             await saveProduct(values);
             showNotification(NotificationType.SUCCESS, "Add food success.");
+            setImageUrls([]);
             setIsOpenAddProductPopup(false);
         } catch (e) {
             showNotification(NotificationType.ERROR, e.response.data.message);
