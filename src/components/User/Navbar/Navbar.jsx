@@ -14,6 +14,7 @@ import { useOrder } from "../../../providers/users/OrderProvider";
 import { getAllUserNotification, markNotificationAsRead } from "../../../services/notification-service/notification-service";
 import { getFormattedDate } from "../../../lib/format-hepper";
 import { useWebSocket } from "../../../hooks/useWebSocket";
+import { MdOutlineNotifications } from "react-icons/md";
 
 const Menu = [
   {
@@ -336,7 +337,7 @@ const Navbar = ({ handleOrderPopup, handleAuthPopup, handleSideBarMenuPopup }) =
                       className="flex items-center justify-center w-10 h-10 rounded-full hover:bg-stone-100"
                       onClick={handleAuthPopup}
                     >
-                      <IoNotificationsOutline size={24} className="text-gray-700 transition-colors duration-200 hover:text-[#fecb02]" />
+                      <IoNotificationsOutline size={25} className="text-gray-700 transition-colors duration-200 hover:text-[#fecb02]" />
                     </button>
 
                     <div className="relative">

@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation } from "swiper/modules";
+import { Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import Img1 from "../../../../assets/women/women.png";
@@ -23,9 +23,6 @@ const ProductsData = [
 
 const Categories = () => {
   const swiperRef = useRef(null);
-  const [isMounted, setIsMounted] = useState(false);
-  const [isEnd, setIsEnd] = useState(false);
-  const [isBeginning, setIsBeginning] = useState(true);
   const [categories, setCategories] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -42,14 +39,6 @@ const Categories = () => {
   }
 
   useEffect(() => {
-    setIsMounted(true);
-    if (swiperRef.current) {
-      swiperRef.current.on('slideChange', () => {
-        setIsBeginning(swiperRef.current.isBeginning);
-        console.log(swiperRef.current.isEnd)
-        setIsEnd(swiperRef.current.isEnd);
-      });
-    }
     getAllCategories();
   }, []);
 
@@ -74,7 +63,7 @@ const Categories = () => {
 
       <div data-aos="fade-up" className="relative">
         <Swiper
-          modules={[Navigation]}
+          modules={[Autoplay]}
           spaceBetween={20}
           breakpoints={{
             500: { slidesPerView: 2 },
@@ -82,9 +71,9 @@ const Categories = () => {
             1024: { slidesPerView: 6 },
           }}
           onSwiper={(swiper) => (swiperRef.current = swiper)}
-          navigation={{
-            prevEl: isMounted ? ".custom-prev" : null,
-            nextEl: isMounted ? ".custom-next" : null,
+          autoplay={{
+            delay: 3000,
+            disableOnInteraction: false,
           }}
           className="!pb-10 !px-2"
         >
@@ -97,17 +86,6 @@ const Categories = () => {
             </SwiperSlide>
           ))}
         </Swiper>
-
-        <button
-          className={`custom-prev absolute left-0 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-white shadow-md text-xl hover:scale-110 transition-all ${isBeginning ? 'text-gray-300 cursor-not-allowed' : 'text-[#fecb02] hover:bg-[#fecb02] hover:text-white'}`}
-        >
-          ❮
-        </button>
-        <button
-          className={`custom-next absolute right-0 top-1/2 transform -translate-y-1/2 p-2 rounded-full bg-white shadow-md text-xl hover:scale-110 transition-all ${isEnd ? 'text-gray-300 cursor-not-allowed' : 'text-[#fecb02] hover:bg-[#fecb02] hover:text-white'}`}
-        >
-          ❯
-        </button>
       </div>
     </div>
   );

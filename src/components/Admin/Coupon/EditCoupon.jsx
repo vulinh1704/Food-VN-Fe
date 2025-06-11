@@ -18,8 +18,11 @@ const CouponSchema = Yup.object().shape({
         .required('Discount is required!'),
     fromDate: Yup.date().nullable(),
     toDate: Yup.date()
-        .min(Yup.ref("fromDate"), "End date must be after or equal to start date!")
-        .nullable()
+        .when('fromDate', {
+            is: (fromDate) => fromDate !== null && fromDate !== '',
+            then: (schema) => schema.min(Yup.ref("fromDate"), "End date must be after or equal to start date!"),
+            otherwise: (schema) => schema.nullable()
+        })
 });
 
 const EditCoupon = ({ isOpenEditPopup, setIsOpenEditPopup, idEdit }) => {
@@ -90,7 +93,7 @@ const EditCoupon = ({ isOpenEditPopup, setIsOpenEditPopup, idEdit }) => {
                                     onClick={() => setIsOpenEditPopup(false)}
                                 />
                                 <Form>
-                                    <h2 className="text-2xl font-semibold text-[#fecb02] text-600 mb-6">Add Coupon</h2>
+                                    <h2 className="text-2xl font-semibold text-[#fecb02] text-600 mb-6">Edit Coupon</h2>
                                     <div className="grid md:grid-cols-2 gap-4 mb-4">
                                         <div className="col-span-2">
                                             <Field
