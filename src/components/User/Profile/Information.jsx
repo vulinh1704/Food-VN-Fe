@@ -17,16 +17,25 @@ const Information = () => {
     const { setUser } = useUser();
     const { setOption } = useProfileMenu();
     const [isLoading, setIsLoading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
 
-    const uploadFile = (file) => {
+    const uploadFile = async (file) => {
         if (file == null) return;
-        const imageRef = ref(storage, `images/${file.name + v4()}`);
-        uploadBytes(imageRef, file).then((snapshot) => {
-            getDownloadURL(snapshot.ref).then((url) => {
-                let newData = { ...userInfo, avatar: url };
-                setUserInfo(newData);
-            });
-        });
+        try {
+            setIsUploading(true);
+            const imageRef = ref(storage, `images/${file.name + v4()}`);
+            const snapshot = await uploadBytes(imageRef, file);
+            const url = await getDownloadURL(snapshot.ref);
+            let newData = { ...userInfo, avatar: url };
+            setUserInfo(newData);
+            setUser(newData); // Update user context
+            showNotification(NotificationType.SUCCESS, "Avatar updated successfully");
+        } catch (error) {
+            console.error("Error uploading image:", error);
+            showNotification(NotificationType.ERROR, "Failed to upload image");
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     const handleSubmit = async (values) => {
@@ -183,20 +192,28 @@ const Information = () => {
 
                             {/* Avatar Section */}
                             <div className="w-64 text-center ml-10">
-                                <img
-                                    src={
-                                        userInfo.avatar ? userInfo.avatar : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
-                                    }
-                                    className="w-24 h-24 mx-auto rounded-full mb-3"
-                                    alt="avatar"
-                                />
-                                <label className="text-blue-500 cursor-pointer">
-                                    Select Image
+                                <div className="relative w-24 h-24 mx-auto mb-3">
+                                    <img
+                                        src={
+                                            userInfo.avatar ? userInfo.avatar : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+                                        }
+                                        className="w-24 h-24 rounded-full object-cover"
+                                        alt="avatar"
+                                    />
+                                    {isUploading && (
+                                        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 rounded-full w-24 h-24">
+                                            <Loading size="small" />
+                                        </div>
+                                    )}
+                                </div>
+                                <label className={`text-blue-500 cursor-pointer ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                    {isUploading ? 'Uploading...' : 'Select Image'}
                                     <input
                                         type="file"
                                         accept="image/png, image/jpeg"
                                         className="hidden"
                                         onChange={(event) => { uploadFile(event.target.files[0]) }}
+                                        disabled={isUploading}
                                     />
                                 </label>
                                 <p className="text-xs text-gray-500 mt-2">
