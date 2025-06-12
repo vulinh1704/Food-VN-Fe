@@ -51,7 +51,9 @@ export function parseToVietnamTime(isoString) {
 
 export function formatNumberWithDots(value) {
   if (value == null || value === "") return "";
-  return value
+  // Làm tròn về số nguyên
+  const intValue = Math.round(Number(value));
+  return intValue
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 }
