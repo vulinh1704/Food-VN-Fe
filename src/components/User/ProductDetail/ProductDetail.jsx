@@ -11,12 +11,13 @@ import { ACTIVE_VALUE_NAVBAR } from "../../../lib/app-const";
 import { useParams, useNavigate } from "react-router-dom";
 import { getOneById, get20ByCategoryOrNewest } from "../../../services/product-service/product-service";
 import { getProductEvaluations, isEvaluated } from "../../../services/evaluation-service/evaluation-service";
-import { addOrderDetail } from "../../../services/order-service/order-service";
+import { addOrderDetail, getAllByOrderId, getCard, submitOrder } from "../../../services/order-service/order-service";
 import EvaluationForm from "./EvaluationForm";
 import { useNotificationPortal } from "../../Supporter/NotificationPortal";
 import { NotificationType } from "../../Supporter/Notification";
 import { useOrder } from "../../../providers/users/OrderProvider";
 import { useUser } from "../../../providers/users/UserProvider";
+import { getAllAddress } from "../../../services/auth-service/auth-service";
 
 const CustomPrevArrow = (props) => {
   const { onClick } = props;
@@ -128,8 +129,8 @@ const UserAvatar = ({ user }) => {
   if (user.avatar) {
     return (
       <div className="w-10 h-10 rounded-full overflow-hidden border border-gray-200">
-        <img 
-          src={user.avatar} 
+        <img
+          src={user.avatar}
           alt={`${user.firstName} ${user.lastName}`}
           className="w-full h-full object-cover"
         />
@@ -148,7 +149,7 @@ const UserAvatar = ({ user }) => {
 
 const UserInfo = ({ user }) => {
   const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
-  
+
   return (
     <div>
       <p className="text-base text-gray-800 font-medium">
@@ -233,11 +234,13 @@ const ProductDetail = () => {
   const [evaluations, setEvaluations] = useState([]);
   const [quantity, setQuantity] = useState(1);
   const { showNotification, NotificationPortal } = useNotificationPortal();
-  const { card } = useOrder();
+  const { card, setCard } = useOrder();
   const { user, setAuthPopup, setOrderPopup } = useUser();
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [canEvaluate, setCanEvaluate] = useState(false);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
 
   const getOne = async () => {
     try {
@@ -278,6 +281,18 @@ const ProductDetail = () => {
     }
   };
 
+  const getAllAddresses = async () => {
+    try {
+      const list = await getAllAddress();
+      setAddresses(list);
+      // Set default address or first address
+      const defaultAddress = list.find(addr => addr.default) || list[0];
+      setSelectedAddress(defaultAddress);
+    } catch (error) {
+      console.error("Error fetching addresses:", error);
+    }
+  };
+
   useEffect(() => {
     setActive(ACTIVE_VALUE_NAVBAR.FOOD);
     if (id) {
@@ -285,6 +300,7 @@ const ProductDetail = () => {
       fetchEvaluations();
       setQuantity(1);
       checkEvaluationPermission();
+      getAllAddresses();
     }
   }, [id, user]);
 
@@ -329,9 +345,19 @@ const ProductDetail = () => {
     }
   };
 
+  const getUserCard = async () => {
+    let data = await getCard();
+    setCard(data);
+  }
+
   const handleBuyNow = async () => {
     if (!user) {
       setAuthPopup(true);
+      return;
+    }
+
+    if (!selectedAddress) {
+      showNotification(NotificationType.ERROR, "Please add a delivery address first");
       return;
     }
 
@@ -347,8 +373,27 @@ const ProductDetail = () => {
         quantity: quantity
       }
       await addOrderDetail(data);
+
+      // Prepare order data for submission
+      let dataOrder = await getAllByOrderId(card.id);
+      dataOrder = dataOrder.map(item => {
+        item.coupons = JSON.stringify(item.product.coupons);
+        return item;
+      })
+
+      const orderData = {
+        id: card.id,
+        userId: card.user.id,
+        address: JSON.stringify(selectedAddress),
+        orderDetails: dataOrder
+      };
+      console.log(orderData);
+      await submitOrder(orderData);
+      await getUserCard();
+      showNotification(NotificationType.SUCCESS, "Order placed successfully!");
       navigate("/orders");
     } catch (error) {
+      console.log(error);
       showNotification(NotificationType.ERROR, "Failed to process order");
     }
   };
@@ -423,7 +468,7 @@ const ProductDetail = () => {
           <p className="text-gray-600 font-medium mb-3">Quantity:</p>
           <div className="flex-1">
             <div className="flex items-center gap-2 border w-[200px] justify-between rounded-lg border-gray-300">
-              <button 
+              <button
                 className={`border-r px-4 py-3 hover:text-[#fecb02] transition-colors ${(quantity <= 1 || isOutOfStock) ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={() => handleQuantityChange(-1)}
                 disabled={quantity <= 1 || isOutOfStock}
@@ -431,7 +476,7 @@ const ProductDetail = () => {
                 -
               </button>
               <span className="font-medium text-lg">{quantity}</span>
-              <button 
+              <button
                 className={`border-l px-4 py-3 hover:text-[#fecb02] transition-colors ${(quantity >= product.quantity || isOutOfStock) ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={() => handleQuantityChange(1)}
                 disabled={quantity >= product.quantity || isOutOfStock}
@@ -443,7 +488,7 @@ const ProductDetail = () => {
         </div>
 
         <div className="flex gap-4 pt-4">
-          <button 
+          <button
             className={`flex-1 py-4 text-[#fecb02] font-semibold border-2 border-[#fecb02] bg-white hover:bg-[#fff9e6] transition-colors rounded-lg flex items-center justify-center gap-2 ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handleAddToCart}
             disabled={isOutOfStock}
@@ -451,7 +496,7 @@ const ProductDetail = () => {
             <IoCartOutline className="text-2xl text-[#fecb02]" />
             <span>Add to Cart</span>
           </button>
-          <button 
+          <button
             className={`flex-1 py-4 bg-[#fecb02] text-white rounded-lg font-semibold text-base hover:bg-[#e5b700] transition-colors ${isOutOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
             onClick={handleBuyNow}
             disabled={isOutOfStock}
@@ -474,7 +519,7 @@ const ProductDetail = () => {
         {/* Product Reviews */}
         <div className="border rounded-xl p-8 mt-6 shadow-sm">
           <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-4">Product Reviews</h2>
-          
+
           {/* Evaluation Form */}
           {user ? (
             canEvaluate ? (
@@ -547,8 +592,8 @@ const ProductDetail = () => {
       <div className="col-span-12 lg:col-span-4 mt-6 space-y-4">
         <h3 className="text-xl font-bold mb-6 text-gray-800">Related Products</h3>
         {relatedProducts.map((item) => (
-          <div 
-            key={item.id} 
+          <div
+            key={item.id}
             className="border rounded-xl p-4 bg-white flex items-center space-x-4 cursor-pointer hover:border-[#fecb02] hover:shadow-md transition-all duration-300"
             onClick={() => navigate(`/detail/${item.id}`)}
           >
